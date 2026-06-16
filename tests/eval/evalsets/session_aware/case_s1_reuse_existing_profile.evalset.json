@@ -1,0 +1,51 @@
+{
+  "eval_set_id": "insurance_session_case_s1_set",
+  "name": "Insurance session-aware case S1 reuse existing profile",
+  "description": "Single-case evaluation for reusing existing user profile from session state.",
+  "eval_cases": [
+    {
+      "eval_id": "session_case_s1_reuse_existing_profile",
+      "conversation": [
+        {
+          "invocation_id": "session-case-s1-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我想再看保險。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "若 state 中已存在年齡、預算與保障目標，應先以友善方式確認是否沿用既有條件，而不是重新逐項追問。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "get_user_profile_snapshot",
+                "args": {}
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "test_user_session",
+        "state": {
+          "user:age": 42,
+          "user:budget": 30000,
+          "user:main_goal": "family_protection",
+          "user:marital_status": "married",
+          "user:has_children": true
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "eval_set_id": "insurance_recommendation_live_set",
+  "name": "Live Case 4: Real-time Correction",
+  "description": "Test for handling real-time corrections in user input.",
+  "eval_cases": [
+    {
+      "eval_id": "live_case_4_realtime_correction",
+      "conversation": [
+        {
+          "invocation_id": "live-4-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我要看醫療險，我 28 歲，預算一萬... 喔不，是改為兩萬。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "應以更正後的預算 20000 為準進行搜尋，推薦醫療保險方案 A，說明保障細節、等待期、除外條款，並附上保守聲明。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_medical_products",
+                "args": {
+                  "age": 28,
+                  "budget": 20000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "live_test_user",
+        "state": {}
+      }
+    }
+  ]
+}

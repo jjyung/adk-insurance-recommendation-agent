@@ -1,0 +1,91 @@
+# .cloudbuild/staging.yaml
+# Staging CD: Build, Push, Terraform Apply, and Eval
+
+steps:
+  # 1. Fetch Existing Backend URL (if any)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'fetch-backend-url'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        SVC_NAME="insurance-agent-backend-staging"
+        EXISTING_URL=$$(gcloud run services describe $$SVC_NAME --platform managed --region ${_REGION} --project ${_STAGING_PROJECT_ID} --format='value(status.url)' 2>/dev/null || echo "")
+
+        if [ -z "$$EXISTING_URL" ]; then
+          echo "Warning: Service not found, using a placeholder URL."
+          echo "https://placeholder-to-be-updated.a.run.app" > /workspace/predicted_url.txt
+        else
+          echo "$$EXISTING_URL" > /workspace/predicted_url.txt
+        fi
+
+  # 2. Build & Push Images
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-images'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        PREDICTED_BACKEND_URL=$$(cat /workspace/predicted_url.txt)
+        make build-push IMAGE_TAG=${SHORT_SHA} GCP_PROJECT_ID=${_STAGING_PROJECT_ID} BACKEND_URL=$$PREDICTED_BACKEND_URL
+
+  # 3. Terraform Apply (Staging Environment)
+  - name: 'hashicorp/terraform:1.7.0'
+    id: 'tf-apply-staging'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        cd deployment/terraform/staging
+        terraform init -backend-config="bucket=${_STAGING_PROJECT_ID}-terraform-state" -backend-config="prefix=insurance-agent/staging"
+        terraform apply -auto-approve \
+          -var="project_id=${_STAGING_PROJECT_ID}" \
+          -var="backend_image=${_REGION}-docker.pkg.dev/${_STAGING_PROJECT_ID}/${_REPO}/insurance-backend:${SHORT_SHA}" \
+          -var="toolbox_image=${_REGION}-docker.pkg.dev/${_STAGING_PROJECT_ID}/${_REPO}/insurance-toolbox:${SHORT_SHA}" \
+          -var="frontend_image=${_REGION}-docker.pkg.dev/${_STAGING_PROJECT_ID}/${_REPO}/insurance-frontend:${SHORT_SHA}"
+
+        # Output variables to workspace for subsequent steps
+        terraform output -raw db_migration_job_name > /workspace/job_name.txt
+        terraform output -raw backend_url > /workspace/backend_url.txt
+
+  # 4. Database Migration
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'db-migration'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        JOB_NAME=$$(cat /workspace/job_name.txt)
+        echo "Executing Database Migration Job: $$JOB_NAME"
+        gcloud beta run jobs execute $$JOB_NAME --region ${_REGION} --project ${_STAGING_PROJECT_ID} --wait
+
+  # 5. Post-Deployment Eval
+  - name: 'ghcr.io/astral-sh/uv:python3.12-bookworm-slim'
+    id: 'staging-eval'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        uv sync --all-extras --dev --frozen
+        # Need to point to the staging backend
+        export BACKEND_URL=$$(cat /workspace/backend_url.txt)
+        export FASTAPI_BASE_URL=$$BACKEND_URL
+        export TOOLBOX_SERVER_URL=$$BACKEND_URL
+        export GOOGLE_CLOUD_LOCATION=${_REGION}
+        export GOOGLE_GENAI_USE_VERTEXAI=1
+        for evalset in tests/eval/evalsets/*.evalset.json; do
+          echo "Running: $$evalset"
+          uv run adk eval ./app "$$evalset" --config_file_path=tests/eval/configs/test_config.json || exit 1
+        done
+
+substitutions:
+  _STAGING_PROJECT_ID: 'your-staging-project-id'
+  _REGION: 'us-central1'
+  _REPO: 'insurance-agent-repo'
+  _GITHUB_OWNER: 'your-github-username'
+  _GITHUB_REPO_NAME: 'insurance-recommendation-agent-auth'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  env:
+    - 'GOOGLE_CLOUD_PROJECT=${_STAGING_PROJECT_ID}'

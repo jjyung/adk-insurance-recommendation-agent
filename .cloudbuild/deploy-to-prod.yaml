@@ -1,0 +1,49 @@
+# .cloudbuild/deploy-to-prod.yaml
+# Production CD: Image Promotion and Terraform Apply
+
+steps:
+  # 1. Promote Images (Retag Staging Image to Prod)
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'promote-images'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        # In a real multi-project setup, you'd copy between registries or retag
+        # Here we assume the same registry or cross-project access
+        gcloud artifacts docker tags add \
+          ${_REGION}-docker.pkg.dev/${_STAGING_PROJECT_ID}/${_REPO}/insurance-backend:${_RELEASE_TAG} \
+          ${_REGION}-docker.pkg.dev/${_PROD_PROJECT_ID}/${_REPO}/insurance-backend:prod-latest
+        
+        gcloud artifacts docker tags add \
+          ${_REGION}-docker.pkg.dev/${_STAGING_PROJECT_ID}/${_REPO}/insurance-toolbox:${_RELEASE_TAG} \
+          ${_REGION}-docker.pkg.dev/${_PROD_PROJECT_ID}/${_REPO}/insurance-toolbox:prod-latest
+
+        gcloud artifacts docker tags add \
+          ${_REGION}-docker.pkg.dev/${_STAGING_PROJECT_ID}/${_REPO}/insurance-frontend:${_RELEASE_TAG} \
+          ${_REGION}-docker.pkg.dev/${_PROD_PROJECT_ID}/${_REPO}/insurance-frontend:prod-latest
+
+  # 2. Terraform Apply (Production Environment)
+  - name: 'hashicorp/terraform:1.7.0'
+    id: 'tf-apply-prod'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        cd deployment/terraform/prod
+        terraform init -backend-config="bucket=${_PROD_PROJECT_ID}-terraform-state" -backend-config="prefix=insurance-agent/prod"
+        terraform apply -auto-approve \
+          -var="project_id=${_PROD_PROJECT_ID}" \
+          -var="backend_image=${_REGION}-docker.pkg.dev/${_PROD_PROJECT_ID}/${_REPO}/insurance-backend:prod-latest" \
+          -var="toolbox_image=${_REGION}-docker.pkg.dev/${_PROD_PROJECT_ID}/${_REPO}/insurance-toolbox:prod-latest" \
+          -var="frontend_image=${_REGION}-docker.pkg.dev/${_PROD_PROJECT_ID}/${_REPO}/insurance-frontend:prod-latest"
+
+substitutions:
+  _STAGING_PROJECT_ID: 'your-staging-project-id'
+  _PROD_PROJECT_ID: 'your-prod-project-id'
+  _RELEASE_TAG: 'latest' # Should be passed from the trigger (e.g., Tag name)
+  _REGION: 'us-central1'
+  _REPO: 'insurance-agent-repo'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

@@ -1,0 +1,45 @@
+{
+  "eval_set_id": "insurance_core_case_2_set",
+  "name": "Insurance core case 2 missing information",
+  "description": "Single-case evaluation for asking follow-up questions when required information is missing.",
+  "eval_cases": [
+    {
+      "eval_id": "case_2_missing_information",
+      "conversation": [
+        {
+          "invocation_id": "case-2-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我想買保險，幫我推薦。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "回覆應先追問年齡、年度預算與主要保障目標，不應直接推薦商品，也不應虛構商品資訊。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "get_user_profile_snapshot",
+                "args": {}
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "test_user",
+        "state": {}
+      }
+    }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "eval_set_id": "insurance_core_case_1_set",
+  "name": "Insurance core case 1 medical complete info",
+  "description": "Single-case evaluation for medical recommendation with complete user information.",
+  "eval_cases": [
+    {
+      "eval_id": "case_1_medical_complete_info",
+      "conversation": [
+        {
+          "invocation_id": "case-1-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我 30 歲，年度保險預算 15000，想加強醫療保障，有什麼推薦？"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "回覆應根據工具查詢結果推薦醫療保障商品，說明推薦原因、預算符合程度、等待期、除外條款，且不得保證核保、理賠或收益。若商品只有入門保費符合預算，必須說明較高保障方案可能超出預算。最後需附上本建議僅供初步商品篩選，實際投保仍需以商品條款、健康告知與核保結果為準。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "get_user_profile_snapshot",
+                "args": {}
+              },
+              {
+                "name": "search_medical_products",
+                "args": {
+                  "age": 30,
+                  "budget": 15000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "test_user",
+        "state": {}
+      }
+    }
+  ]
+}

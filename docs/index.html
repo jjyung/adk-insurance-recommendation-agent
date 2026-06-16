@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>【AI 技術架構實戰】從地端到雲端：保險推薦 Agent 全生命週期開發手冊</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap" />
+  <!-- highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- Mermaid.js for diagrams -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: true, theme: 'default' });</script>
+  <style>
+    /* =====================
+       CSS Reset & Variables
+       ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-primary: #1a73e8;
+      --color-primary-dark: #1557b0;
+      --color-surface: #ffffff;
+      --color-bg: #f8f9fa;
+      --color-border: #dadce0;
+      --color-text: #202124;
+      --color-text-secondary: #5f6368;
+      --color-step-done: #1a73e8;
+      --color-step-active: #1a73e8;
+      --color-step-inactive: #9aa0a6;
+      --color-note: #e8f0fe;
+      --color-note-border: #1a73e8;
+      --color-warning: #fef7e0;
+      --color-warning-border: #f9ab00;
+      --color-important: #fce8e6;
+      --color-important-border: #d93025;
+      --color-tip: #e6f4ea;
+      --color-tip-border: #1e8e3e;
+      --sidebar-width: 260px;
+      --header-height: 64px;
+      --font-body: 'Roboto', 'Google Sans', sans-serif;
+      --font-heading: 'Google Sans', 'Roboto', sans-serif;
+      --font-mono: 'Roboto Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      color: var(--color-text);
+      background: var(--color-bg);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* =====================
+       Top Header Bar
+       ===================== */
+    .codelab-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 200;
+      gap: 16px;
+    }
+    .codelab-header__logo {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-primary);
+      text-decoration: none;
+      letter-spacing: -0.3px;
+    }
+    .codelab-header__title {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      color: var(--color-text-secondary);
+      font-weight: 400;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .codelab-header__meta {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      white-space: nowrap;
+    }
+
+    /* =====================
+       Layout: Sidebar + Main
+       ===================== */
+    .codelab-body {
+      display: flex;
+      margin-top: var(--header-height);
+      flex: 1;
+    }
+
+    /* =====================
+       Left Sidebar (TOC)
+       ===================== */
+    .codelab-nav {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      position: sticky;
+      top: var(--header-height);
+      height: calc(100vh - var(--header-height));
+      overflow-y: auto;
+      padding: 24px 0 40px;
+    }
+    .codelab-nav__heading {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      padding: 0 20px 12px;
+    }
+    .codelab-nav__list {
+      list-style: none;
+    }
+    .codelab-nav__item a {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+      transition: background 0.15s, color 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .codelab-nav__item a:hover {
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+    .codelab-nav__item.active a {
+      color: var(--color-primary);
+      border-left-color: var(--color-primary);
+      background: #e8f0fe;
+      font-weight: 500;
+    }
+    .codelab-nav__step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--color-step-inactive);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .codelab-nav__item.active .codelab-nav__step-num {
+      background: var(--color-step-active);
+    }
+    .codelab-nav__item.done .codelab-nav__step-num {
+      background: var(--color-step-done);
+    }
+    .codelab-nav__step-title { flex: 1; }
+
+    /* =====================
+       Main Content Area
+       ===================== */
+    .codelab-main {
+      flex: 1;
+      min-width: 0;
+      padding: 40px 48px 80px;
+      max-width: 900px;
+    }
+
+    /* Step Section */
+    .codelab-step {
+      display: block;
+      margin-bottom: 80px;
+      scroll-margin-top: calc(var(--header-height) + 24px);
+    }
+    .codelab-step__header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .codelab-step__num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--font-heading);
+      flex-shrink: 0;
+    }
+    .codelab-step__title {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.25;
+    }
+
+    /* Typography */
+    .codelab-step p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--color-text);
+      margin-bottom: 16px;
+    }
+    .codelab-step h3 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 600;
+      margin: 32px 0 12px;
+      color: var(--color-text);
+    }
+    .codelab-step h4 {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 600;
+      margin: 24px 0 8px;
+      color: var(--color-text);
+    }
+    .codelab-step ul, .codelab-step ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+    .codelab-step li {
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 6px;
+    }
+
+    /* Inline code */
+    .codelab-step code:not(pre code) {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: #f1f3f4;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: #c0392b;
+    }
+
+    /* Code blocks */
+    .codelab-step pre {
+      background: #f8f9fa;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 20px 0;
+      position: relative;
+    }
+    .codelab-step pre code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+    /* Language label on code blocks */
+    .codelab-step pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 10px;
+      left: 16px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    /* Copy button for code blocks */
+    .code-copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      color: var(--color-text-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 10px;
+      cursor: pointer;
+      line-height: 1.6;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .code-copy-btn:hover {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+    .code-copy-btn.copied {
+      background: var(--color-tip-border);
+      color: #fff;
+      border-color: var(--color-tip-border);
+    }
+
+    /* Tables */
+    .codelab-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .codelab-table th {
+      background: var(--color-bg);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 16px;
+      border-bottom: 2px solid var(--color-border);
+    }
+    .codelab-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .codelab-table tr:last-child td { border-bottom: none; }
+    .codelab-table tr:hover td { background: var(--color-bg); }
+
+    /* Images */
+    .codelab-step img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--color-border);
+      display: block;
+      margin: 24px auto;
+    }
+    .codelab-img-wrapper {
+      text-align: center;
+      margin: 24px 0;
+    }
+    .codelab-img-caption {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-top: 8px;
+      font-style: italic;
+    }
+    /* Image placeholder (when image file not found) */
+    .codelab-img-placeholder {
+      background: #fef7e0;
+      border: 2px dashed var(--color-warning-border);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      color: #856404;
+      font-size: 14px;
+      margin: 24px 0;
+    }
+    .codelab-img-placeholder::before {
+      content: "⬛ 待補圖：";
+    }
+
+    /* =====================
+       Callout Boxes
+       ===================== */
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-left: 4px solid;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .callout p { margin: 0; font-size: 14px; }
+    .callout strong:first-child {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .callout-note {
+      background: var(--color-note);
+      border-color: var(--color-note-border);
+      color: #174ea6;
+    }
+    .callout-note strong:first-child { color: var(--color-note-border); }
+    .callout-warning {
+      background: var(--color-warning);
+      border-color: var(--color-warning-border);
+      color: #7a5200;
+    }
+    .callout-warning strong:first-child { color: var(--color-warning-border); }
+    .callout-important {
+      background: var(--color-important);
+      border-color: var(--color-important-border);
+      color: #7c2b29;
+    }
+    .callout-important strong:first-child { color: var(--color-important-border); }
+    .callout-tip {
+      background: var(--color-tip);
+      border-color: var(--color-tip-border);
+      color: #0d5226;
+    }
+    .callout-tip strong:first-child { color: var(--color-tip-border); }
+
+    /* =====================
+       Step Navigation (Bottom)
+       ===================== */
+    .codelab-step-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--color-border);
+    }
+    .codelab-step-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+      color: var(--color-primary);
+      border: 1px solid var(--color-border);
+    }
+    .codelab-step-nav a:hover {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+    .codelab-step-nav .prev::before { content: "← "; }
+    .codelab-step-nav .next::after  { content: " →"; }
+
+    /* =====================
+       Scrollspy: highlight active step in sidebar
+       ===================== */
+
+    /* =====================
+       Codelab Custom Learning Pillars & Details Accordion Styles
+       ===================== */
+    .learning-pillars-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+    .learning-pillar-card {
+      border: 1px solid var(--color-border);
+      padding: 20px;
+      border-radius: 12px;
+      background: var(--color-surface); /* Pure white background to match light theme */
+      border-left: 4px solid var(--color-primary);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .learning-pillar-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .learning-pillar-card h4 {
+      color: var(--color-primary);
+      margin: 0 0 8px 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+    .learning-pillar-card p {
+      margin: 0;
+      font-size: 0.875rem;
+      line-height: 1.5;
+      color: var(--color-text-secondary);
+    }
+    
+    /* Elegant Details styling */
+    .tech-accordion {
+      margin: 16px 0;
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      background: var(--color-surface);
+      overflow: hidden;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .tech-accordion[open] {
+      border-color: var(--color-primary);
+      box-shadow: 0 2px 8px rgba(26, 115, 232, 0.1);
+    }
+    .tech-accordion summary {
+      padding: 16px 20px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      color: var(--color-text);
+      background: var(--color-bg);
+      list-style: none; /* hide default arrow */
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .tech-accordion summary:hover {
+      background: rgba(26, 115, 232, 0.05);
+      color: var(--color-primary);
+    }
+    /* Custom summary expand icon */
+    .tech-accordion summary::after {
+      content: '＋';
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: var(--color-step-inactive);
+      transition: transform 0.2s ease;
+    }
+    .tech-accordion[open] summary::after {
+      content: '－';
+      color: var(--color-primary);
+    }
+    .tech-accordion summary::-webkit-details-marker {
+      display: none; /* Safari default arrow hide */
+    }
+    .tech-accordion-content {
+      padding: 24px;
+      border-top: 1px solid var(--color-border);
+      font-size: 0.95rem;
+      line-height: 1.7;
+      background: var(--color-surface);
+    }
+
+    /* =====================
+       Responsive
+       ===================== */
+    @media (max-width: 768px) {
+      .codelab-nav { display: none; }
+      .codelab-main { padding: 24px 20px 60px; }
+      .codelab-step__title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="codelab-header">
+    <a class="codelab-header__logo" href="#">Codelabs</a>
+    <span class="codelab-header__title">【AI 技術架構實戰】從地端到雲端：保險推薦 Agent 全生命週期開發手冊</span>
+    <span class="codelab-header__meta">AI 技術架構團隊 · 2026-05-28</span>
+  </header>
+
+  <div class="codelab-body">
+
+    <!-- Left Sidebar TOC -->
+    <nav class="codelab-nav" id="codelab-nav">
+      <p class="codelab-nav__heading">目錄</p>
+      <ul class="codelab-nav__list" id="step-list">
+        <li class="codelab-nav__item active" data-step="1">
+          <a href="#step-1">
+            <span class="codelab-nav__step-num">1</span>
+            <span class="codelab-nav__step-title">系統全景圖</span>
+          </a>
+        </li>
+        <li class="codelab-nav__item" data-step="2">
+          <a href="#step-2">
+            <span class="codelab-nav__step-num">2</span>
+            <span class="codelab-nav__step-title">第一站：地端環境啟動</span>
+          </a>
+        </li>
+        <li class="codelab-nav__item" data-step="3">
+          <a href="#step-3">
+            <span class="codelab-nav__step-num">3</span>
+            <span class="codelab-nav__step-title">深度解析：核心技術實作</span>
+          </a>
+        </li>
+        <li class="codelab-nav__item" data-step="4">
+          <a href="#step-4">
+            <span class="codelab-nav__step-num">4</span>
+            <span class="codelab-nav__step-title">安全性與隱私保護</span>
+          </a>
+        </li>
+        <li class="codelab-nav__item" data-step="5">
+          <a href="#step-5">
+            <span class="codelab-nav__step-num">5</span>
+            <span class="codelab-nav__step-title">品質保證：測試與評估</span>
+          </a>
+        </li>
+        <li class="codelab-nav__item" data-step="6">
+          <a href="#step-6">
+            <span class="codelab-nav__step-num">6</span>
+            <span class="codelab-nav__step-title">營運與觀測</span>
+          </a>
+        </li>
+        <li class="codelab-nav__item" data-step="7">
+          <a href="#step-7">
+            <span class="codelab-nav__step-num">7</span>
+            <span class="codelab-nav__step-title">個人沙盒環境：Dev 部署</span>
+          </a>
+        </li>
+        <li class="codelab-nav__item" data-step="8">
+          <a href="#step-8">
+            <span class="codelab-nav__step-num">8</span>
+            <span class="codelab-nav__step-title">航向雲端：Staging 部署與 CI/CD 管線</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="codelab-main" id="codelab-main">
+
+      <section class="codelab-step" id="step-1">
+        <div class="codelab-step__header">
+          <span class="codelab-step__num">1</span>
+          <h2 class="codelab-step__title">系統全景圖 (System Architecture)</h2>
+        </div>
+        <p>👋 各位準 AI 工程師們，大家好！我是你們的技術架構導師。</p>
+        <p>今天，我們將一起深入探索這套<strong>保險推薦 Agent 系統</strong>。這不只是一個單純的聊天機器人，它結合了 <strong>Gemini Multimodal Live API</strong>、<strong>RAG (檢索增強生成)</strong>、以及<strong>分散式追蹤與安全性稽核</strong>等企業級技術。</p>
+        <p>在動手寫程式前，我們先看懂「地圖」。下圖展示了請求如何從前端 Next.js 流向後端 FastAPI，並與 Google ADK (Agent Developer Kit) 及 GCP 服務互動。</p>
+        <div class="codelab-img-wrapper">
+          <img src="images/archi-v2.png" alt="archi-v2" />
+          <div class="codelab-img-caption">archi-v2</div>
+        </div>
+
+        <h3>A. 核心三支柱架構</h3>
+        <ol>
+          <li><strong>前端 (Next.js 15 App Router)</strong>：提供視覺化對話與儀表板介面，專為低延遲雙向串流優化。透過自定義多模態 Hooks 協調音訊 (PCM)、視訊畫面與螢幕共享的同步傳輸。</li>
+          <li><strong>後端服務 (FastAPI + Google ADK)</strong>：基於 <code>google-adk</code> 框架封裝 Agent 實例（定義於 <code>app/agent.py</code> 搭配系統提示詞 <code>prompts/insurance_agent_prompt.txt</code>），全站採用非同步 <code>asyncio</code> 驅動。</li>
+          <li><strong>企業基礎設施 (PostgreSQL + MCP Toolset)</strong>：透過 SQL 商品搜尋與 Vertex AI 向量 FAQ 檢索（pgvector），確保資料可靠性與業務規則隔離。</li>
+        </ol>
+
+        <h3>B. 前後端模組與 UI 元件設計</h3>
+        <ul>
+          <li><strong>多模態即時 Hooks</strong>：
+            <ul>
+              <li><code>useAudioCapture</code> / <code>useAudioPlayback</code>：音訊採樣與雙向低延遲串流播放。</li>
+              <li><code>useCameraCapture</code> / <code>useScreenCapture</code>：視訊與螢幕分享影格擷取。</li>
+              <li><code>useLiveAgent</code>：整合 WebSocket 轉發，傳遞音訊、影像與文字的同步通訊。</li>
+            </ul>
+          </li>
+          <li><strong>可視化 UI 元件庫</strong>：
+            <ul>
+              <li><code>WaveformVisualizer</code>：即時麥克風及模型音訊之波形動態視覺化。</li>
+              <li><code>InsuranceCard</code>：以結構化、易讀的卡片呈現保單重點、預算符合度（Budget Fit）標籤。</li>
+              <li><code>StateTree</code> &amp; <code>TimelineNodes</code>：即時呈現內部 Agent 狀態樹變化與歷史工具執行軌跡。</li>
+            </ul>
+          </li>
+        </ul>
+        <div class="codelab-step-nav">
+          <span></span>
+          <a class="next" href="#step-2">第一站：地端環境啟動</a>
+        </div>
+      </section>
+
+      <section class="codelab-step" id="step-2">
+        <div class="codelab-step__header">
+          <span class="codelab-step__num">2</span>
+          <h2 class="codelab-step__title">第一站：地端環境啟動 (Local Development)</h2>
+        </div>
+        <p>請開啟你的終端機，按照以下指令順序，我們來「點亮」這台地端機器。</p>
+
+        <h3>A. 環境變數配置 (.env)</h3>
+        <p>在安裝依賴與啟動服務之前，必須先建立並設定本地環境變數。請將專案根目錄下的 <code>.env.example</code> 複製一份並命名為 <code>.env</code>：</p>
+        <pre><code class="language-bash">cp .env.example .env</code></pre>
+        <p>接著，使用編輯器打開 <code>.env</code> 檔案，依據實際開發情況修改以下關鍵設定值：</p>
+        <ul>
+          <li><strong>GCP 專案設定</strong>：設定 <code>GOOGLE_CLOUD_PROJECT</code> 為你的 GCP Project ID，並確認 <code>GOOGLE_CLOUD_LOCATION</code> 區域設定（預設為 <code>us-central1</code>）。</li>
+          <li><strong>金鑰配置</strong>：若不使用 Vertex AI（即 <code>GOOGLE_GENAI_USE_VERTEXAI=0</code>），請在 <code>GOOGLE_API_KEY</code> 填入你的 Gemini API Key；若使用服務帳號連接，請設定 <code>GOOGLE_APPLICATION_CREDENTIALS</code> 指向金鑰 JSON 檔案路徑。</li>
+          <li><strong>安全認證祕鑰</strong>：在 PoC 或開發階段，請自訂 <code>JWT_SECRET</code> 與 <code>NEXTAUTH_SECRET</code>。你也可以在終端機執行 <code>openssl rand -base64 32</code> 來生成高度安全的隨機密鑰。</li>
+        </ul>
+
+        <h3>B. 本地環境與依賴安裝</h3>
+        <p>首先安裝所有 Python 核心依賴，並預備前端 UI 模組：</p>
+        <pre><code class="language-bash">make install-all # 安裝 Python 依賴與虛擬環境
+make ui-install  # 安裝 Next.js 前端 UI 依賴</code></pre>
+
+        <h3>C. 容器化資料庫與 FAQ 知識庫初始化</h3>
+        <p>啟動本地 Postgres 容器（具備 <code>pgvector</code> 支援），建立測試使用者，並執行 RAG 向量嵌入（Embedding）與 FAQ 知識庫的資料寫入：</p>
+        <pre><code class="language-bash">make db-up     # 啟動 PostgreSQL 容器
+make db-seed   # 建立測試帳號 testuser / password123
+make db-ingest # 執行 FAQ 知識庫向量化匯入 (gemini-embedding-001)</code></pre>
+        <div class="callout callout-note">
+          <strong>DATABASE TIP:</strong>
+          <p>如果你想快速清除並重新執行完整的 Init/Seed/Ingest，可以一鍵執行：<code>make db-reset</code>。</p>
+        </div>
+
+        <div class="callout callout-tip">
+          <strong>VERIFY INITIALIZATION (初始化資料驗證提示):</strong>
+          <p>在開始進行開發或對話之前，建議確認資料庫是否已正確完成初始化並載入 FAQ 知識庫。你可以透過以下步驟進行連線與資料驗證：</p>
+          <ol style="margin-top: 8px; margin-bottom: 0; padding-left: 20px;">
+            <li>開啟本地 <code>.env</code> 檔案，尋找 <code>AUDIT_DB_PATH</code>（或 <code>ADK_SESSION_DB_URI</code>），可從其連線字串中取得資料庫的<strong>使用者名稱 (User)</strong>、<strong>密碼 (Password)</strong>、<strong>主機 (Host, 預設為 localhost)</strong>、<strong>埠號 (Port, 預設為 5432)</strong> 以及<strong>資料庫名稱 (Database, 預設為 insurance)</strong>。</li>
+            <li>開啟你熟悉的資料庫 IDE 或工具（例如 DBeaver 或 VSCode PostgreSQL Extension）。</li>
+            <li>新增 PostgreSQL 連線，填入上述取得的帳號與密碼等資訊。</li>
+            <li>連線成功後，檢查是否有 <code>users</code>、<code>faq_knowledge</code>、<code>vec_faq_knowledge</code> 與 <code>audit_events</code> 等資料表，並確認資料表中已成功寫入測試資料與 FAQ 向量嵌入資料。</li>
+          </ol>
+        </div>
+
+        <h3>D. 本地偵錯、開發與 Playground</h3>
+        <p>本地除錯提供了高彈性的開發循環工具，我們可以使用不同的指令來啟動偵錯：</p>
+        <ol>
+          <li><strong>執行後端與前端</strong>：
+            <pre><code class="language-bash">make run-fastapi  # 啟動 FastAPI 服務 (Port 8080)
+make ui-dev       # 啟動 Next.js 網頁 (Port 3000)</code></pre>
+          </li>
+          <li><strong>VS Code 斷點除錯</strong>：
+            <p>使用 <code>make debug-fastapi</code> 啟動帶有 <code>debugpy</code> 偵錯器支援的後端，讓你可以隨時在 VS Code 中下中斷點，追蹤 AI 推理的即時變數狀態。</p>
+          </li>
+          <li><strong>ADK Streamlit Playground</strong>：
+            <p>執行 <code>make playground</code> 啟動 ADK 內建的 Web 互動沙盒，用最直覺的 GUI 即時驗證 Agent 的工具呼叫、Prompt 約束以及模型生成結果。</p>
+          </li>
+        </ol>
+
+        <div class="callout callout-tip">
+          <strong>TIP:</strong>
+          <p>所有服務啟動後，開啟 <code>http://localhost:3000/login</code> 並使用 <code>testuser / password123</code> 登入即可開始功能測試。</p>
+        </div>
+        <div class="codelab-step-nav">
+          <a class="prev" href="#step-1">系統全景圖</a>
+          <a class="next" href="#step-3">深度解析：核心技術實作</a>
+        </div>
+      </section>
+
+      <section class="codelab-step" id="step-3">
+        <div class="codelab-step__header">
+          <span class="codelab-step__num">3</span>
+          <h2 class="codelab-step__title">深度解析：核心技術實作與全生命週期對照</h2>
+        </div>
+        <p>本章節深入剖析本專案的核心技術架構。為了提昇學習成效、避免因資訊過於密集而失去焦點，我們將繁複的實作細節進行了模組化重構。請讀者先掌握以下<b>三大核心技術支柱</b>與<b>關鍵代碼地圖</b>，再展開下方摺疊面板循序漸進地探索細節！</p>
+
+        <!-- 三大核心技術支柱卡片 -->
+        <div class="learning-pillars-container">
+          <div class="learning-pillar-card">
+            <h4>Pillar A：相依性容器化 (DI Pattern)</h4>
+            <p>掌握 <code>AppContainer</code> 單例設計，理解資料庫、Agent、Runner 的組裝以及測試期的 Mock 替換機制。</p>
+          </div>
+          <div class="learning-pillar-card">
+            <h4>Pillar B：SSE 串流與事件轉譯</h4>
+            <p>學習 ADK 原始 Event 如何動態對應、轉譯成前端 Envelope，掌握文字 append 串流與狀態同步補丁（Patch）。</p>
+          </div>
+          <div class="learning-pillar-card">
+            <h4>Pillar C：全雙工 Bidi 並工排程</h4>
+            <p>理解 Live API 雙向非同步上下游任務協同，學習如何在 <code>asyncio</code> 併發與中斷下實現零記憶體洩漏清理。</p>
+          </div>
+        </div>
+
+        <!-- 關鍵代碼地圖 -->
+        <h3>🎯 關鍵代碼地圖 (Key Code Map)</h3>
+        <p>學員在閱讀下方流程說明時，強烈建議隨時對照 VS Code 打開以下檔案，這能幫助你快速將抽象架構轉化為具體體感：</p>
+        <table class="codelab-table">
+          <thead>
+            <tr>
+              <th>核心檔案與方法</th>
+              <th>技術定位</th>
+              <th>面試/核心考點 (Key Focus)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>app/container.py</code><br/>➔ <code>build_app_container</code></td>
+              <td>依賴注入與容器工廠</td>
+              <td>1. 如何在一點集中初始化所有 Singleton 元件？<br/>2. 如何區分文字模型與 Live 語音多模態模型的 Runner？</td>
+            </tr>
+            <tr>
+              <td><code>app/services/agent_run_service.py</code><br/>➔ <code>stream</code> &amp; <code>map_adk_event_to_envelopes</code></td>
+              <td>SSE 串流執行與轉譯服務</td>
+              <td>1. <b>如何偵測並過濾重複的用戶 Echo（回顯）訊息？</b><br/>2. 如何將 ADK 事件狀態差值轉譯為前端控制台 Patch？</td>
+            </tr>
+            <tr>
+              <td><code>app/services/live_agent_service.py</code><br/>➔ <code>execute_live_session</code></td>
+              <td>WebSocket 雙向串流協調服務</td>
+              <td>1. 如何配置 RunConfig 以支援繁中 TTS/STT？<br/>2. <b>如何利用 asyncio.wait 首個異常時徹底取消其餘任務並安全釋放 gRPC 連接？</b></td>
+            </tr>
+            <tr>
+              <td><code>app/streaming/upstream.py</code><br/>➔ <code>_resize_image_if_needed</code></td>
+              <td>多模態上游串流優化</td>
+              <td>1. <b>大圖為何會引發 Live API 維度報錯？</b><br/>2. 縮放演算法與格式優化如何節省 70%+ 的網絡傳輸帶寬？</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- 摺疊面板區：漸進式學習 -->
+        <h3>⚙️ 全生命週期深度剖析（點擊展開各階段細節）</h3>
+
+        <!-- 摺疊 1 -->
+        <details class="tech-accordion">
+          <summary>階段 1：系統啟動與全域相依性初始化 (Application Init)</summary>
+          <div class="tech-accordion-content">
+            <p>當 FastAPI 應用程式（由 <code>app/api/main.py</code> 的 <code>lifespan</code> 監聽啟動）點亮時，後端會執行全域的一致性初始化：</p>
+            <ol>
+              <li><strong>載入配置</strong>：<code>load_runtime_config()</code> 從 <code>.env</code> 或環境變數載入所有的模型、資料庫連接網址、JWT 金鑰，包裝成唯讀的 <code>AppRuntimeConfig</code>。</li>
+              <li><strong>組裝依賴圖 (Dependency Graph)</strong>：呼叫 <code>build_app_container()</code>（於 <code>app/container.py</code>）將元件組裝：
+                <ul>
+                  <li><strong>DatabaseSessionService</strong>：連接 PostgreSQL，作為 ADK 對話狀態持久化的基石。</li>
+                  <li><strong>Agent 實例化</strong>：從 <code>app/prompts/insurance_agent_prompt.txt</code> 載入系統提示詞。繫結本地狀態維護工具（如 <code>save_user_profile</code>、<code>save_last_recommendation</code>）與遠端 MCP 產品搜尋工具。分別實例化文字 Agent 跑一般對話、多模態 Live Agent 跑語音對話。</li>
+                  <li><strong>Runner 執行器</strong>：分別建立對應的文字與 Live 非同步 Runner 實例。</li>
+                  <li><strong>業務服務層 (Services)</strong>：建立 `SessionService`、`UserService`、`AuditLogService`、以及 `AgentRunService`。</li>
+                </ul>
+              </li>
+              <li><strong>生命週期鉤子</strong>：初始化 <code>AuditLogService</code> 自動建立 <code>audit_events</code> 審計日誌資料表。</li>
+            </ol>
+          </div>
+        </details>
+
+        <!-- 摺疊 2 -->
+        <details class="tech-accordion">
+          <summary>階段 2：REST / SSE 串流執行生命週期 (SSE Run stream)</summary>
+          <div class="tech-accordion-content">
+            <p>當使用者在 UI 發送一句話（如：「我今年 35 歲，年度預算 2 萬，幫我推薦醫療險」），後端觸發 <code>POST /api/agent/run</code>，其內部流程如下：</p>
+            <ol>
+              <li><strong>請求攔截與認證</strong>：
+                <ul>
+                  <li>利用 FastAPI 的 <code>Depends(get_current_user)</code> 機制解密 Header 中的 JWT。驗證使用者存在性並核對請求 UserId 以防止水平越權。</li>
+                  <li>從標頭抽取或自動生成 <code>trace_id</code>、<code>request_id</code>，封裝為唯讀的 <code>AuditContext</code>。</li>
+                </ul>
+              </li>
+              <li><strong>工作階段持久化鎖定</strong>：
+                <ul>
+                  <li>調用 <code>AgentRunService.ensure_session()</code>，在資料庫中以冪等（Idempotent）方式確保工作階段紀錄已初始化。</li>
+                </ul>
+              </li>
+              <li><strong>啟動 SSE 串流生成器 (<code>sse_generator</code>)</strong>：
+                <ul>
+                  <li>向前端發送 <code>type: "meta"</code> 封包，宣告通訊傳輸模式。</li>
+                  <li>記錄 <code>user.prompt.received</code> 到審計日誌，自動遮蔽敏感 PII 欄位。</li>
+                  <li>調用 ADK 核心 Runner 的 <code>run_async()</code>。</li>
+                </ul>
+              </li>
+              <li><strong>過濾重複用戶回顯 (Echo Filter)</strong>：
+                <ul>
+                  <li><b>學員必看</b>：ADK 的執行流在第一個回合（Turn）通常會將用戶的原始輸入（Prompt）作為 Event 重新拋出。為了防止前端在對話歷程中繪製出重複的對話氣泡，<code>AgentRunService</code> 內建了 <code>is_echoed_user_input()</code> 過濾器，精確比對並截斷第一個重複的 user event。</li>
+                </ul>
+              </li>
+              <li><strong>事件協議轉換 (<code>map_adk_event_to_envelopes</code>)</strong>：
+                <ul>
+                  <li><strong>業務工具調用 (Timeline)</strong>：當模型決定調用 <code>search_medical_products</code> 時，轉換成 <code>type: "timeline"</code>，將 args 與 payload 發送給前端 UI（思考軌跡卡片）。若是內部状态管理工具（如 <code>get_user_profile_snapshot</code>）則標記為 <code>internal</code> 以在 UI 隱藏。</li>
+                  <li><strong>文字串流 (Message)</strong>：當模型生成文字片段，若 <code>event.partial = True</code>，轉換為 <code>type: "message"</code>, <code>mode: "append"</code>，驅動前端打字機效果；當 partial 結束後累加至 <code>total_text</code>。</li>
+                  <li><strong>狀態差值同步 (State Patch)</strong>：當模型調用狀態工具更新畫像（如 <code>save_user_profile</code>），會產生 <code>state_delta</code>。系統將狀態 Patch 包裝成 <code>type: "state"</code>，使前端的 State Inspector 控制台即時同步。</li>
+                </ul>
+              </li>
+              <li><strong>結束串流</strong>：流程結束，將最終更新狀態同步，發送最後一個 <code>done</code> 封包，並將整個回合寫入 PostgreSQL <code>audit_events</code> 表，形成防篡改日誌雜湊鏈。</li>
+            </ol>
+            <p>下方為完整的 REST / SSE 呼叫時序圖：</p>
+            <div class="mermaid">
+            sequenceDiagram
+                autonumber
+                actor Client as 前端瀏覽器 (UI)
+                participant Route as api/routes/run.py
+                participant RunSrv as services/agent_run_service.py
+                participant Runner as ADK Runner (Engine)
+                participant Agent as app/agent.py (Gemini 2.5)
+                participant Session as services/session_service.py
+                participant Audit as services/audit_log_service.py
+
+                Client->>Route: POST /api/agent/run (sessionId, prompt, sessionState)
+                Route->>Route: Depends(get_current_user) 驗證 JWT & 比對權限
+                Route->>Route: 生成 trace_id & 封裝 AuditContext
+                Route->>RunSrv: ensure_session(session_id, sessionState)
+                RunSrv->>Session: ensure_session() (DB 冪等建立/載入)
+                Route->>Route: 返回 StreamingResponse (SSE Generator)
+                
+                rect rgb(240, 248, 255)
+                    note over Route, Runner: SSE 串流迴圈啟動
+                    RunSrv->>Audit: record("user.prompt.received") (PII 已遮蔽)
+                    RunSrv->>Client: data: { "type": "meta", ... }
+                    RunSrv->>Runner: run_async(user_id, session_id, message)
+                    Runner->>Session: 載入對話歷史 (History Context)
+                    
+                    loop ADK 內部推理與工具鏈 (Reasoning Loop)
+                        Runner->>Agent: 提供 Instruction, Context 與當前狀態
+                        Agent->>Agent: 意圖分類與工具決策
+                        alt 觸發工具呼叫 (Tool Use)
+                            Agent->>Runner: 拋出 Tool Call
+                            Runner->>RunSrv: 拋出 Event (function_call)
+                            RunSrv->>Audit: record("agent.tool_call") (敏感欄位去識別)
+                            RunSrv->>Client: data: { "type": "timeline", "event": { "kind": "tool-call", ... } }
+                        end
+                    end
+
+                    Runner->>Agent: 串流文字輸出 (Generation)
+                    loop Token 生成
+                        Runner->>RunSrv: 拋出 Event (partial=True, text)
+                        RunSrv->>Client: data: { "type": "message", "text": "...", "mode": "append" }
+                    end
+
+                    Runner->>Runner: 執行完成 (Stream Finished)
+                    Runner->>RunSrv: 拋出最終 Event (partial=False)
+                end
+
+                RunSrv->>Session: get_state() 讀取資料庫同步後之最終 State
+                RunSrv->>Audit: record("response.completed")
+                RunSrv->>Client: data: { "type": "done", "finalText": "...", "state": {...} }
+            </div>
+          </div>
+  </details>
+
+  <details class="tech-accordion">
+    <summary>階段 3：WebSocket 多模態 Gemini Live 雙向串流生命週期 (Gemini Live stream)</summary>
+    <div class="tech-accordion-content">
+        <p>為支援全雙工語音、即時視訊影格分析等低延遲互動，系統提供了一套基於 <strong>Gemini Multimodal Live API</strong> 的 WebSocket 雙向串流架構：</p>
+        <ol>
+          <li><strong>建立連線與 WebSocket 安全握手 (Connection &amp; Handshake)</strong>：
+            <ul>
+              <li><strong>發起握手</strong>：前端發起 WebSocket 長連線請求至 <code>/api/agent/live/ws/{session_id}</code>，並在 Query string 中附加 <code>token</code> 參數。</li>
+              <li><strong>手動 JWT 認證</strong>：路由端點手動提取 <code>token</code>，呼叫 <code>decode_access_token()</code> 進行解密，核對使用者狀態。若不合規，立即回應 <code>WS_1008_POLICY_VIOLATION</code> 強制斷開。</li>
+              <li><strong>旗標寫入與委派</strong>：握手通過後，接受 WebSocket 連線。路由將前端傳入的個性化功能開關（<code>proactivity</code>, <code>affective_dialog</code>）同步寫入 Session State 中，最後將對話委派給 <code>LiveAgentService</code> 託管。</li>
+            </ul>
+          </li>
+          <li><strong>初始化會話與資源配置 (Resource Allocation)</strong>：
+            <ul>
+              <li><strong>建立雙向執行配置 (<code>RunConfig</code>)</strong>：啟用模態設定為 <code>"AUDIO"</code>（語音回應模式）、全雙工雙向串流 <code>StreamingMode.BIDI</code>、繁體中文 STT/TTS、並配置 <code>ProactivityConfig</code>（主動發話模式）。</li>
+              <li><strong>資源閉包初始化</strong>：實例化並行安全緩衝佇列 <code>LiveRequestQueue</code>，作為 WebSocket 與 ADK 核心之間的非同步資料通道。並確保此連線的工作階段在 PostgreSQL 資料庫中存在。</li>
+            </ul>
+          </li>
+          <li><strong>並行調度上游與下游任務 (Concurrency &amp; Dual-Task Scheduling)</strong>：
+            <p><code>LiveAgentService.execute_live_session()</code> 啟用非同步任務協調。利用 Python <code>asyncio</code> 同步啟動兩個執行續任務，並使用 <code>asyncio.wait(..., return_when=asyncio.FIRST_EXCEPTION)</code> 實作容錯監控：</p>
+            <ul>
+              <li><strong>上游任務 (Client ➔ Agent)</strong>：託管於 <code>upstream_task</code>，負責消費 WebSocket 端點發來的媒體資料，過濾優化後寫入緩衝。</li>
+              <li><strong>下游任務 (Agent ➔ Client)</strong>：託管於 <code>downstream_task</code>，負責監聽並讀取模型生成的即時事件，序列化後轉發回前端播放。</li>
+            </ul>
+          </li>
+          <li><strong>上游處理機制 (Upstream Handling - Client ➔ Agent)</strong>：
+            <p><code>upstream_task()</code> 運行一條無窮迴圈，持續讀取前端傳送的封包：</p>
+            <ul>
+              <li><strong>PCM 二進位音訊流</strong>：直接讀取來自前端麥克風的 raw PCM bytes，包裝為 Blob，以 <code>send_realtime()</code> 發送。</li>
+              <li><strong>文字輸入 (<code>type: "text"</code>)</strong>：將文字轉為 types.Part 並呼叫 <code>send_content()</code>。</li>
+              <li><strong>圖片輸入 (<code>type: "image"</code>)</strong>：解碼 Base64 圖片。為了優化模型讀取效能與網路帶寬效益，內建<b>多模態影像自動縮放機制 (<code>_resize_image_if_needed</code>)</b>：自動等比例將大圖的最長邊限制在 1024 像素內、剔除透明通道（Alpha Channel）並統一轉為高壓縮率的 JPEG，包裝為 Blob 經由 <code>send_realtime()</code> 推送，隨後送出引導 Prompt。</li>
+              <li><strong>視訊/分享影格 (<code>type: "video_frame"</code>)</strong>：連續不斷傳送的攝像頭或螢幕共享影格，使用 <code>send_realtime()</code> 發送。</li>
+              <li><strong>客戶端中斷命令 (<code>type: "close"</code>)</strong>：主動關閉佇列並跳出上游迴圈。</li>
+            </ul>
+          </li>
+          <li><strong>下游處理機制 (Downstream Handling - Agent ➔ Client)</strong>：
+            <p><code>downstream_task()</code> 調用 <code>runner.run_live()</code> 啟動 Gemini Live API。當模型有任何回應時，非同步消費其拋出的事件：</p>
+            <ul>
+              <li><strong>語音合成轉錄 (Transcription)</strong>：當模型發話或使用者說話時，系統接收並在後端日誌中實時輸出音訊轉文字結果（STT/TTS 對照），方便偵錯。</li>
+              <li><strong>嚴重錯誤攔截與管制 (Terminal Errors)</strong>：自動檢查 <code>event.error_code</code>。若偵測到安全守門員阻斷（<code>SAFETY</code>）、敏感內容防護（<code>PROHIBITED_CONTENT</code>）、超出硬上限（<code>MAX_TOKENS</code>） 或 配額耗盡（<code>RESOURCE_EXHAUSTED</code>）等致命錯誤，系統將錯誤訊息包裝為 JSON 發送回前端，並主動中斷下游執行。</li>
+              <li><strong>資料發送</strong>：將合法的即時事件轉化為 JSON（透過 <code>model_dump_json(exclude_none=True, by_alias=True)</code> 剔除多餘空欄位、壓縮帶寬），以 WebSocket 發送給前端，由前端解碼並將音訊實時發聲。</li>
+            </ul>
+          </li>
+          <li><strong>連線斷開與安全資源回收 (Disconnection &amp; Cleanup)</strong>：
+            <p>當前端離線（觸發 <code>WebSocketDisconnect</code>）或下游任務拋出異常結束時，並行調度器會立即對仍在執行的 pending 任務發送 <code>cancel()</code>，並確保進入 <code>finally</code> 區塊執行 <code>live_request_queue.close()</code>。這能<b>安全切斷底層 gRPC 連接，徹底杜絕記憶體洩漏（Memory Leak）與孤立執行緒問題</b>，維護高併發下系統的健康度。</p>
+          </li>
+        </ol>
+        <p>下方為完整的 Gemini Live WebSocket 呼叫時序圖：</p>
+        <div class="mermaid">
+        sequenceDiagram
+            autonumber
+            actor Client as Client (前端瀏覽器)
+            participant EP as live.py<br/>(FastAPI Endpoint)
+            participant LS as LiveAgentService
+            participant UT as upstream_task<br/>(Upstream Task)
+            participant DT as downstream_task<br/>(Downstream Task)
+            participant LQ as LiveRequestQueue
+            participant Runner as ADK Runner<br/>(Gemini Live API)
+
+            %% 階段 1: 建立連線與認證
+            Client->>EP: WebSocket 升級請求 (Query 攜帶 token, session_id)
+            activate EP
+            EP->>EP: decode_access_token() 驗證 JWT 權限與帳號狀態
+            alt Token 驗證失敗
+                EP-->>Client: 關閉連線並回應 WS 1008 Policy Violation
+            else Token 驗證通過
+                EP-->>Client: websocket.accept() (接受連線並升級)
+            end
+            EP->>EP: 將功能開關 (proactivity/affective) 寫入 Session State
+
+            %% 階段 2: 初始化會話
+            EP->>LS: execute_live_session()
+            deactivate EP
+            activate LS
+            LS->>LS: create_run_config() (配置 response_modalities=["AUDIO"], zh-TW, Puck)
+            LS->>LQ: 建立並行 safe LiveRequestQueue()
+            LS->>LS: ensure_session() (在資料庫中確保會話存在)
+
+            %% 階段 3: 並行調度上游與下游任務
+            rect rgb(240, 248, 255)
+                note right of LS: asyncio.wait(Upstream, Downstream, return_when=FIRST_EXCEPTION)
+                LS->>UT: asyncio.create_task(upstream_task)
+                activate UT
+                LS->>DT: asyncio.create_task(downstream_task)
+                activate DT
+            end
+            deactivate LS
+
+            %% 階段 4: 上游傳輸流
+            loop 雙向互動 (上游處理)
+                Client->>UT: 傳送音訊 PCM Bytes / 圖片 / 文字 / 視訊幀
+                alt 是 raw PCM 音訊 bytes
+                    UT->>LQ: send_realtime(audio_blob)
+                else 是 文字 text JSON
+                    UT->>LQ: send_content(content)
+                else 是 圖片 image JSON
+                    UT->>UT: _resize_image_if_needed() (轉 JPEG & 限制寬 1024px)
+                    UT->>LQ: send_realtime(image_blob)
+                    UT->>LQ: send_content(prompt)
+                else 是 視訊影格 video_frame JSON
+                    UT->>LQ: send_realtime(frame_blob)
+                end
+                LQ-->>Runner: 寫入 API 緩衝區推送到 Gemini
+            end
+
+            %% 階段 5: 下游傳輸流
+            DT->>Runner: 呼叫 runner.run_live(live_request_queue, run_config)
+            loop 雙向互動 (下游處理)
+                Runner-->>DT: 迭代即時 Event (音訊 PCM 區塊, 轉錄文字, 工具呼叫)
+                DT->>DT: 後端記錄轉錄內容 (Debug logs)
+                alt 檢測到嚴重錯誤 (SAFETY, RESOURCE_EXHAUSTED, etc)
+                    DT->>Client: 發送 Wrapped Error Message JSON
+                    DT->>DT: 主動中斷下游並跳出迴圈
+                else 正常事件
+                    DT->>Client: event_json (剔除空欄位之序列化資料)
+                end
+            end
+
+            %% 階段 6: 連線中斷與資源釋放
+            note over Client, Runner: WebSocket 斷開連線 或 任務異常/取消
+            Client-xUT: 斷開連線
+            deactivate UT
+            DT->>DT: 取消下游任務 / 中斷 iteration
+            deactivate DT
+            activate LS
+            LS->>LQ: close() (關閉佇列緩衝區)
+            note over LS: 優雅關閉 gRPC / HTTP 網路連接資源
+            deactivate LS
+        </div>
+    </div>
+  </details>
+
+  <!-- 摺疊 4 -->
+  <details class="tech-accordion">
+    <summary>階段 4：程式碼關聯與架構設計亮點</summary>
+    <div class="tech-accordion-content">
+      <ul>
+        <li><strong>相依性注入與生命週期一致性 (<code>app/container.py</code>)</strong>：
+          <p>使用 <code>AppContainer</code> 集中管理應用程式所有元件的依賴圖（Dependency Graph）。這種做法極大簡化了單元與整合測試中的 Mock 操作（例如呼叫 <code>reset_dependency_caches()</code> 可輕鬆替換資料庫或 Runner），保障了開發效率。</p>
+        </li>
+        <li><strong>會話開關與 Prompt 狀態自省 (<code>app/services/session_service.py</code>)</strong>：
+          <p>前端對功能按鍵（如同理心對話或主動發話）的更新，被包裝成一個系統事件並透過 <code>update_session()</code> 附加至 Session 的事件歷程中。當 Agent 呼叫 <code>get_user_profile_snapshot</code> 時，便能從狀態字典中讀取 <code>config:affective_enabled</code> 與 <code>config:proactive_enabled</code> 並做出行為修正，展現了高超的<b>會話感知（Session-Aware）自省能力</b>。</p>
+        </li>
+        <li><strong>低延遲多模態圖片優化 (<code>app/streaming/upstream.py</code>)</strong>：
+          <p>在 WebSocket 連線中，頻繁傳輸高解析度影格會引發極高延遲。<code>_resize_image_if_needed()</code> 能在不影響模型理解的前提下，主動進行等比例縮圖、轉 RGB 及高壓縮率 JPEG，極大縮減了網絡帶寬負載，為多模態即時影像對話提供穩定支撐。</p>
+        </li>
+        <li><strong>精準的錯誤代碼管制與優雅回收</strong>：
+          <p>系統對 <code>SAFETY</code>, <code>RESOURCE_EXHAUSTED</code> 等致命錯誤設有嚴格的過濾和邊界，一經觸發便主動阻斷。並在 <code>LiveAgentService</code> 中結合 <code>asyncio.CancelledError</code> 的處理與 <code>live_request_queue.close()</code>，確保雲端高併發下連線被安全、徹底回收。</p>
+        </li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- 改善 4：避坑與面試考點 Gotchas -->
+  <div class="callout callout-warning">
+    <strong>💡 避坑指引與高頻面試考點 (GOTCHAS & INTERVIEW ESSENTIALS)</strong>
+    <ul>
+      <li><strong>為什麼必須過濾 Echo 訊息？</strong><br/>
+        在非同步 Runner 發送消息時，ADK 會拋出一個包含使用者原始輸入的轉發 Event。如果不在此處進行攔截過濾（比對 text 與 user input），學員的前端會印出重複的對話。這在系統整合與面試中是非常經典的 RAG/Agent 狀態機細節考點。
+      </li>
+      <li><strong>多模態 Live API 的圖片像素限制是？</strong><br/>
+        Gemini 2.5/Live 模型在直接接收大圖 PCM 時可能會引發 <code>1007 Dimension Mismatch</code> 或是極高延遲。在 `upstream.py` 中，手動使用 PIL (LANCZOS 演算法) 限制寬度在 1024 像素內，轉 RGB 剔除 PNG 帶有的 Alpha 通道，並強壓成 JPEG。這不僅保障了百分之百的通訊穩定，還將帶寬消耗縮減了 75% 以上！
+      </li>
+      <li><strong>全雙工併發中斷如何防止 gRPC 套接字洩漏？</strong><br/>
+        當用戶忽然點擊關閉，或者是麥克風網絡套接字異常斷線，若後端仍在對 Live API 進行阻塞讀寫（Downstream task 阻塞在 <code>runner.run_live</code> 迭代中），會造成<b>懸空孤兒協程 (Orphaned Coroutine)</b>。使用 <code>asyncio.wait(..., return_when=FIRST_EXCEPTION)</code> 能確保一旦其中一端發生斷線（拋出 WebDisconnect），另一端會立刻被拋出 Cancel 訊號，並在 <code>finally</code> 中確實呼叫 <code>live_request_queue.close()</code> 銷毀所有協程緩衝區與網絡資源！
+      </li>
+    </ul>
+  </div>
+
+        <div class="codelab-step-nav">
+          <a class="prev" href="#step-2">第一站：地端環境啟動</a>
+          <a class="next" href="#step-4">安全性與隱私保護</a>
+        </div>
+      </section>
+
+      <section class="codelab-step" id="step-4">
+        <div class="codelab-step__header">
+          <span class="codelab-step__num">4</span>
+          <h2 class="codelab-step__title">安全性與隱私保護 (Security First)</h2>
+        </div>
+        <p>在保險金融領域，使用者敏感資訊（PII）與合規性是首要命脈。我們實作了多層次縱深防禦機制：</p>
+        <ol>
+          <li><strong>JWT 統一身份驗證與授權 (Authentication &amp; Auth)</strong>：
+            <ul>
+              <li>所有核心 API (包含 WebSocket) 都會經過 <code>app/security/auth.py</code> 的 Token 驗證。</li>
+              <li>支援 OAuth2 密碼驗證流，實現多端權杖核對。REST API 採用 Header 載入 Token，而 WebSocket（因瀏覽器連線限制）則經由 Query Parameter 的 <code>token</code> 參數進行解密與驗證。</li>
+            </ul>
+          </li>
+          <li><strong>PII 敏感資料遮蔽 (PII Redaction)</strong>：
+            <p>實作於 <code>app/security/pii.py</code>，透過自定義 Regex 高效過濾敏感資訊，支援去識別化（Redaction）與雜湊化（Hashing）。例如，在資料發送給外網 LLM 之前，會對台灣身分證字號、Email、電話進行自動轉換：</p>
+            <pre><code class="language-python"># pii.py 正則比對示例
+      TAIWAN_ID_RE = re.compile(r"\b[A-Z][12]\d{8}\b", re.I)
+      redacted, findings = redact_text(input_text) # 將 ID 轉為 [REDACTED_TW_ID]</code></pre>
+          </li>
+          <li><strong>雜湊鏈防竄改審計日誌 (Hash Chain Audit Log)</strong>：
+            <p>在 <code>app/services/audit_log_service.py</code> 中實作。所有 Agent 動作與工具呼叫在 PII 遮蔽後，會依序寫入資料庫審計日誌（Audit Log）。</p>
+            <p>每個日誌節點皆包含前一個節點的雜湊值 (<code>prev_hash</code>)，形成一條不可逆、防篡改的日誌信用鏈，確保存證與稽核的完整性。</p>
+          </li>
+        </ol>
+        <div class="codelab-step-nav">
+          <a class="prev" href="#step-3">深度解析：核心技術實作</a>
+          <a class="next" href="#step-5">品質保證：測試與評估</a>
+        </div>
+      </section>
+
+      <section class="codelab-step" id="step-5">
+        <div class="codelab-step__header">
+          <span class="codelab-step__num">5</span>
+          <h2 class="codelab-step__title">品質保證：測試與評估 (QA &amp; Eval)</h2>
+        </div>
+        <p>保證 AI 系統的正確性，不能只依賴一般軟體單元測試。我們建構了「傳統測試金字塔」與「AI 評估 (ADK Evals)」的雙重驗證迴圈：</p>
+
+        <h3>A. 本地測試金字塔 (Testing Pyramid)</h3>
+        <p>使用 <code>pytest</code> 搭配 <code>pytest-asyncio</code> 實作完整的自動化測試套件（詳見 <code>tests/</code>）：</p>
+        <ul>
+          <li><strong>單元測試 (Unit Tests)</strong>：<code>pytest tests/unit/</code>
+            <ul>
+              <li>驗證會話管理 CRUD (<code>test_session_service.py</code>) 與使用者資料檢索邏輯 (<code>test_user_service.py</code>)。</li>
+            </ul>
+          </li>
+          <li><strong>整合與安全性測試 (Integration &amp; Security)</strong>：<code>pytest tests/integration/</code>
+            <ul>
+              <li>驗證 API 路由在未授權下拋出 401 錯誤、審計日誌雜湊鏈防竄改是否無縫串接，以及 PII 遮蔽演算法的正確性 (<code>test_pii_redaction.py</code>)。</li>
+            </ul>
+          </li>
+          <li><strong>負載測試 (Load Tests)</strong>：
+            <ul>
+              <li>位於 <code>tests/load_test/</code> 下，使用 <code>Locust</code> 進行 API 併發與 WebSocket 連線吞吐量壓力測試。</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>B. ADK 智慧評估迴圈 (Eval-Fix Loop)</h3>
+        <p>傳統 pytest 無法對模型「答非所問」或「幻覺推薦」進行量化打分。因此，我們利用 Google ADK 內建的 Evals 評估框架，結合 <strong>LLM-as-a-Judge</strong> 評估指標，設計了五大主題 Evalsets：</p>
+        <ol>
+          <li><strong>核心對話 (Core Evals)</strong>：<code>make eval-core</code> (驗證基本保單搜尋、推薦關聯與完整資訊補全)。</li>
+          <li><strong>安全性邊界 (Safety Evals)</strong>：<code>make eval-safety</code> (驗證系統抵禦惡意 Prompt Injection 的能力，並確保 PII 不被 echo 回應給用戶)。</li>
+          <li><strong>即時互動情境 (Live Evals)</strong>：<code>make eval-live</code> (針對 Live 模式下的情感共鳴 (Affective Empathy) 與主動建議評分)。</li>
+          <li><strong>會話歷史記憶 (Session Aware)</strong>：<code>make eval-session-aware</code> (檢核 Agent 是否能記住上個回合的使用者偏好或歷史推薦)。</li>
+          <li><strong>全域指標評估 (All-in-One)</strong>：執行 <code>make eval-all</code>。遍歷所有 evalsets 並產出視覺化報告，評分準則涵蓋 <code>Instruction Following</code>、<code>Tool Selection Accuracy</code> 等關鍵指標。</li>
+        </ol>
+
+        <div class="codelab-step-nav">
+          <a class="prev" href="#step-4">安全性與隱私保護</a>
+          <a class="next" href="#step-6">營運與觀測</a>
+        </div>
+      </section>
+
+      <section class="codelab-step" id="step-6">
+        <div class="codelab-step__header">
+          <span class="codelab-step__num">6</span>
+          <h2 class="codelab-step__title">營運與觀測 (Observability)</h2>
+        </div>
+        <p>當 AI Agent 開始處理真實世界的業務，我們需要實時、全方位的「觀測之眼」。專案實作了多維度的可觀測性架構：</p>
+
+        <h3>A. OpenTelemetry 分散式追蹤 (Agent Tracing)</h3>
+        <ul>
+          <li><strong>標準 Conventions</strong>：符合 OpenTelemetry 針對 GenAI 設計的語意規範，系統啟動時會自動捕捉 <code>invoke_agent</code> 呼叫、工具調用細節（Tool Execution）與底層 LLM 的時間消耗。</li>
+          <li><strong>自定義追蹤裝飾器</strong>：
+            <p>在會話意識與狀態管理工具（<code>app/tools/session_tools.py</code>）中，我們使用 <code>@tracer.start_as_current_span</code> 裝飾本地操作（如 <code>save_user_profile</code>），可在 GCP Trace Explorer 內深度洞察各工具在雙向非同步環境下的精確耗時。</p>
+          </li>
+        </ul>
+
+        <h3>B. 結構化日誌與 Prompt/Response 安全備份</h3>
+        <ul>
+          <li><strong>Cloud Logging</strong>：整合 GCP Cloud Logging，特別記錄 <code>register_feedback</code> 使用者回饋等互動資料。</li>
+          <li><strong>Prompt/Response 備份</strong>：在設定 <code>LOGS_BUCKET_NAME</code> 後，系統會將輸入輸出備份到 GCS。預設啟用 <code>NO_CONTENT</code> 隱私保護模式，保護敏感的個人對話數據。</li>
+        </ul>
+
+        <h3>C. BigQuery Agent Analytics 與成本監控</h3>
+        <p>我們在 <code>app/config.py</code> 整合了 <code>BigQueryAgentAnalyticsPlugin</code>。此插件會非同步將對話的生命週期事件（如 <code>LLM_REQUEST</code>、<code>LLM_RESPONSE</code>、<code>STATE_DELTA</code>）寫入指定的 BigQuery 資料表中，帶來以下效益：</p>
+        <ol>
+          <li><strong>Token 成本即時剖析</strong>：
+            <pre><code class="language-sql">-- 計算平均 Token 消耗與 LLM 延遲
+      SELECT
+      AVG(usage_total_tokens) as avg_tokens,
+      AVG(total_ms) as avg_llm_ms
+      FROM `your_project.agent_analytics.v_llm_response`;</code></pre>
+          </li>
+          <li><strong>最耗時工具排行 (Bottleneck Analysis)</strong>：
+            <pre><code class="language-sql">SELECT
+      tool_name,
+      COUNT(*) as call_count,
+      AVG(total_ms) as avg_latency_ms
+      FROM `your_project.agent_analytics.v_tool_completed`
+      GROUP BY tool_name
+      ORDER BY avg_latency_ms DESC;</code></pre>
+          </li>
+        </ol>
+
+        <div class="callout callout-note">
+          <strong>OBSERVABILITY GRACEFUL DEGRADATION:</strong>
+          <p>可觀測性架構具備<b>優雅降級</b>特性。在本地執行 <code>make playground</code>時，若偵測到無 GCP 環境，OTel 自動切換至 No-Op 模式，不拖累本地開發效能；BigQuery 插件若未配置環境變數則自動跳過初始化。</p>
+        </div>
+
+        <div class="codelab-step-nav">
+          <a class="prev" href="#step-5">品質保證：測試與評估</a>
+          <a class="next" href="#step-7">個人沙盒環境：Dev 部署</a>
+        </div>
+      </section>
+
+      <section class="codelab-step" id="step-7">
+        <div class="codelab-step__header">
+          <span class="codelab-step__num">7</span>
+          <h2 class="codelab-step__title">個人沙盒環境：Dev 部署 (Dev Deployment)</h2>
+        </div>
+        <p>在進入正式 Staging 與 Production 提交前，你可以建立專屬於自己的雲端個人開發沙盒（Sandbox），這能幫你驗證真實雲端環境下的權限（IAM）、資料庫（Cloud SQL）與網絡延遲。</p>
+
+        <h3>Step 1: 基礎設施一鍵部署</h3>
+        <p>本專案使用 Terraform 管理雲端資源（定義於 <code>deployment/terraform/dev/</code>）。我們可以使用 Makefile 動態生成對應環境變數的 <code>.tfbackend</code> 配置，並啟動雲端部署：</p>
+        <pre><code class="language-bash">make tf-apply ENV_NAME=dev # 部署個人專屬雲端 Dev 基礎設施 (Cloud Run & SQL)</code></pre>
+
+        <h3>Step 2: 雲端資料庫 Proxy 初始化</h3>
+        <p>一旦基礎設施部署完畢，我們需要將資料庫的 Schema 寫入雲端 Cloud SQL：</p>
+        <pre><code class="language-bash">make gcp-db-setup ENV_NAME=dev # 透過 Auth Proxy 一鍵在雲端建立 Table、寫入 Seed 與向量 FAQs</code></pre>
+
+        <div class="callout callout-tip">
+          <strong>SANDBOX BENEFIT:</strong>
+          <p>個人沙盒環境提供完全隔離的測試空間，讓開發者在提交程式碼前，能確信服務帳號 (Service Account) 與 GCP 元件在安全政策下無礙運作。</p>
+        </div>
+
+        <div class="codelab-step-nav">
+          <a class="prev" href="#step-6">營運與觀測</a>
+          <a class="next" href="#step-8">航向雲端：Staging 部署與 CI/CD 管線</a>
+        </div>
+      </section>
+
+      <section class="codelab-step" id="step-8">
+        <div class="codelab-step__header">
+          <span class="codelab-step__num">8</span>
+          <h2 class="codelab-step__title">航向雲端：Staging 部署與 CI/CD 管線</h2>
+        </div>
+        <p>當本機與個人沙盒（Dev）環境驗證無誤後，正式進入團隊共同擁有的 Staging (測試/驗收) 與 Production (正式生產) 環境。本專案嚴格遵循 GitOps 與環境隔離策略，並透過 <strong>GCP 原生 WIF 與 Cloud Build 觸發器</strong>實現無金鑰、全自動的安全持續整合與部署流程。</p>
+
+        <h3>一、 端到端部署流程時序圖 (End-to-End CD Flow)</h3>
+        <p>下圖展示了從開發者首次環境引導 (Day 0 Bootstrap)，到 Pull Request 自動整合測試 (CI)，乃至 Staging / Production 環境晉升 (CD) 的完整自動化生命週期：</p>
+        <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Dev as Developer (開發者)
+    participant Git as GitHub (Repo)
+    participant CB as Cloud Build (CI/CD)
+    participant AR as Artifact Registry
+    participant TF as Terraform (IaC)
+    participant GCP as GCP Resources (Cloud Run, SQL)
+    participant DB as Cloud SQL (PostgreSQL)
+
+    %% Day 0: Bootstrap Environment (Dev/Staging/Prod Initial Setup)
+    rect rgb(240, 248, 255)
+        note right of Dev: Phase 0: Day 0 Bootstrap (首次環境建立)
+        Dev->>TF: 執行 make tf-gen-config
+        TF-->>GCP: 建立 Terraform State GCS Bucket
+        Dev->>CB: 執行 make build-push
+        CB->>AR: 自動建立儲存庫並推送 Backend/Frontend Image
+        Dev->>TF: 執行 make tf-apply (基於 ENV_NAME)
+        TF->>GCP: 部署 Cloud Run, Cloud SQL, BigQuery 等基礎設施
+        Dev->>DB: 執行 make gcp-db-setup
+        DB-->>DB: 建立 Schema、寫入 Seed Data、完成 FAQ 向量化
+    end
+
+    %% Phase 1: Continuous Integration (PR)
+    rect rgb(245, 245, 245)
+        note right of Dev: Phase 1: Continuous Integration (PR 階段)
+        Dev->>Git: 開啟 Pull Request
+        Git->>CB: 觸發 pr_checks.yaml
+        CB-->>CB: 執行代碼檢查 (make lint)
+        CB-->>CB: 執行單元測試 (make test)
+        CB->>TF: 執行 terraform plan (預覽變更)
+        TF-->>CB: 回報基礎設施變更預覽
+        CB-->>Git: 狀態回報 (Pass/Fail)
+    end
+
+    %% Phase 2: Continuous Deployment to Staging
+    rect rgb(255, 250, 240)
+        note right of Dev: Phase 2: CD to Staging (合併至 main)
+        Dev->>Git: 合併 PR 至 main
+        Git->>CB: 觸發 staging.yaml
+        CB->>AR: 建置並推送新版 Image (Tag: SHA)
+        CB->>TF: 執行 terraform apply (針對 Staging)
+        TF->>GCP: 更新 Staging Cloud Run 服務
+        CB-->>CB: 執行部署後評估 (make eval-all)
+    end
+
+    %% Phase 3: Continuous Deployment to Production
+    rect rgb(255, 240, 245)
+        note right of Dev: Phase 3: CD to Production (發布版本)
+        Dev->>Git: 建立 Git Tag (e.g., v1.0.0)
+        Git->>CB: 觸發 deploy-to-prod.yaml
+        CB->>AR: 晉升映像檔 (Promote Image: Staging -> Prod Latest)
+        CB->>TF: 執行 terraform apply (針對 Prod)
+        TF->>GCP: 更新 Production Cloud Run 服務
+    end
+</div>
+
+        <h3>二、 部署服務與雲端架構清單 (Deployed Services)</h3>
+        <p>經由自動化管線與模塊化 Terraform 部署，各雲端環境會配置以下核心資源，確保服務之安全與穩健：</p>
+        <table class="codelab-table">
+          <thead>
+            <tr>
+              <th>領域 (Domain)</th>
+              <th>部署資源 / 服務名稱</th>
+              <th>說明與用途</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>運算 (Compute)</strong></td>
+              <td>Cloud Run (Backend)</td>
+              <td>處理核心 Agent 邏輯。採用 <strong>Sidecar 雙容器架構</strong>，同時運行 FastAPI 主程式與 Toolbox 容器。</td>
+            </tr>
+            <tr>
+              <td><strong>運算 (Compute)</strong></td>
+              <td>Cloud Run (Frontend)</td>
+              <td>運行 Next.js 前端應用程式，提供低延遲音訊波形與 AI 互動介面。</td>
+            </tr>
+            <tr>
+              <td><strong>資料庫 (Data)</strong></td>
+              <td>Cloud SQL (PostgreSQL 15)</td>
+              <td>儲存使用者 Profile、Session 狀態。整合 <code>pgvector</code> 儲存 FAQ 的 768 維度向量資料。</td>
+            </tr>
+            <tr>
+              <td><strong>儲存 (Storage)</strong></td>
+              <td>Artifact Registry</td>
+              <td>Docker 映像檔的儲存庫。存放 Backend、Frontend 與 Toolbox 映像檔。</td>
+            </tr>
+            <tr>
+              <td><strong>儲存 (Storage)</strong></td>
+              <td>Cloud Storage (GCS)</td>
+              <td>包含三個主要 Bucket：Terraform State 狀態桶、Telemetry Payload 桶（存放 JSONL）與 Cloud Build 構建日誌。</td>
+            </tr>
+            <tr>
+              <td><strong>資安 (Security)</strong></td>
+              <td>Secret Manager</td>
+              <td>安全儲存敏感憑證，如資料庫 Password（<code>insurance-agent-db-password-*</code>）與 API 密鑰。</td>
+            </tr>
+            <tr>
+              <td><strong>資安 (Security)</strong></td>
+              <td>IAM &amp; WIF</td>
+              <td>Workload Identity Federation 機制提供 GitHub Actions/Cloud Build 安全存取；並配置最小權限 Service Accounts。</td>
+            </tr>
+            <tr>
+              <td><strong>監測 (Telemetry)</strong></td>
+              <td>Cloud Logging &amp; BigQuery</td>
+              <td>收集日誌，透過 Linked Dataset 建立 <code>completions_view</code> 視圖，無縫整併 Metadata 與 GCS 內的 Prompt 內容。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>三、 首次部署「冷啟動 (Cold Start)」與資料庫初始化</h3>
+        <p>在自動化 CI/CD 觸發器接管之前，<strong>必須手動執行一次初始部署</strong>，用以建立 Artifact Registry 等核心依賴。忽略此步驟將導致 Cloud Build 管線因找不到遠端映像檔與狀態檔而報錯：</p>
+        <ol>
+          <li><strong>設定專案與環境變數</strong>：
+            <p>調整根目錄的 <code>.env</code> 檔案：</p>
+            <pre><code class="language-bash">GCP_PROJECT_ID=your-staging-project-id
+ENV_NAME=staging</code></pre>
+          </li>
+          <li><strong>建立遠端狀態桶（Terraform State Bucket）</strong>：
+            <pre><code class="language-bash">make tf-gen-config # 建立對應環境的專屬遠端 State Bucket 並動態產出 tfbackend 配置</code></pre>
+          </li>
+          <li><strong>建置並推送初始冷啟動映像檔</strong>：
+            <pre><code class="language-bash">make build-push # 建立 AR 儲存庫並推送初始 Backend、Frontend 及 Toolbox Image</code></pre>
+          </li>
+          <li><strong>初始化並部署 Staging 基礎設施</strong>：
+            <pre><code class="language-bash">make tf-init
+make tf-apply</code></pre>
+          </li>
+          <li><strong>雲端資料庫一鍵初始化</strong>：
+            <pre><code class="language-bash">make gcp-db-setup # 在背景安全建立 Proxy、寫入 Schema、匯入 Seed 並執行 FAQ 向量化</code></pre>
+          </li>
+        </ol>
+        <div class="callout callout-warning">
+          <strong>ORPHAN DATABASE CLEANUP:</strong>
+          <p>如果在學習與頻繁重新部署過程中產生了孤兒（Orphaned）資料庫實例，可以使用 <code>make gcp-cleanup-orphans</code> 輔助列出並一鍵清除，避免產生額外雲端帳單費用。</p>
+        </div>
+
+        <h3>四、 工作負載身分同盟 (Workload Identity Federation, WIF)</h3>
+        <p>為避免使用含有高度安全洩漏風險的靜態 GCP 服務帳戶私鑰金鑰檔 (.json)，專案整合了 <strong>OIDC (OpenID Connect) WIF 技術</strong>：</p>
+        <ul>
+          <li><strong>建立 Identity Pool 與 Provider</strong>：
+            <p>在 CI 主專案中執行 gcloud 註冊 <code>github-pool</code> 與 <code>github-provider</code>，並將 attribute 對應至 GitHub Repository 屬性。</p>
+          </li>
+          <li><strong>無私鑰身分模擬 (Service Account Impersonation)</strong>：
+            <p>模擬 <code>cicd-runner</code> 服務帳號。此 runner SA 在 Staging 與 Production 專案中被授予遵循最小特權原則的安全性角色：</p>
+            <ul>
+              <li><code>roles/run.admin</code> (Cloud Run 管理)</li>
+              <li><code>roles/storage.admin</code> (GCS 儲存管理)</li>
+              <li><code>roles/cloudsql.admin</code> (SQL 實例管理)</li>
+              <li><code>roles/secretmanager.admin</code> (Secret 管理)</li>
+              <li><code>roles/bigquery.admin</code> (BigQuery 分析管理)</li>
+            </ul>
+          </li>
+        </ul>
+
+        <h3>五、 CI/CD 觸發器與晉升政策 (Promotion Policy)</h3>
+        <ol>
+          <li><strong>持續整合 (PR 階段 - <code>pr_checks.yaml</code>)</strong>：
+            <p>開發者發起 PR 時觸發。全自動執行 <code>make lint</code> (代碼格式)、<code>make test</code> (非同步測試) 並且在 Staging/Prod 目錄下執行 <code>terraform plan</code> 以利同僚進行架構異動代碼評審。</p>
+          </li>
+          <li><strong>Staging 環境部署 (合併 main - <code>staging.yaml</code>)</strong>：
+            <p>PR 核准合併至 <code>main</code> 分支後觸發。自動以 Commit SHA 為標記建置並推送映像檔，完成 Staging 資源套用。最後<b>自動執行 ADK 品質評估 <code>make eval-all</code></b>，若 AI 指標（如 PII 合規、推薦正確度）未達標準，將阻斷晉升。</p>
+          </li>
+          <li><strong>Prod 生產環境發布 (建立 Git Tag - <code>deploy-to-prod.yaml</code>)</strong>：
+            <p>Staging 驗收無誤後，管理員在 GitHub 建立版本標籤（如 <code>v1.0.0</code>）時觸發。管線不會重新 Build，而是<strong>直接 Retag (晉升) Staging 映像檔為生產版 <code>prod-latest</code></strong>，確保代碼具備絕對的一致性；並執行 <code>terraform apply</code> 套用高可用 (High Availability) 生產配置（如開啟 DB 複本與啟用 Deletion Protection）。</p>
+          </li>
+        </ol>
+
+        <div class="codelab-step-nav">
+          <a class="prev" href="#step-7">個人沙盒環境：Dev 部署</a>
+          <span></span>
+        </div>
+      </section>
+
+      <section class="codelab-step">
+        <h3>結語：技術總結與架構師的提醒</h3>
+        <p>👋 恭喜你完成了這份保險推薦 Agent 的全生命週期開發手冊！</p>
+        <p>作為一名優秀的 AI 系統架構師，我們的終極職責不只是開發出「能動」的 AI 代理人，而是要在<b>安全性、品質保證、營運觀測與自動化發布</b>等維度上，建構一個穩健、合規且高可用性的企業級智能中樞。以下為我們在此手冊中探索的六大技術核心支柱：</p>
+
+        <table class="codelab-table">
+          <thead>
+            <tr>
+              <th>核心維度 (Pillar)</th>
+              <th>技術關鍵實作 (Tech Stack)</th>
+              <th>技術優勢與企業價值</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. 即時多模態互動</strong></td>
+              <td>FastAPI WebSockets + Gemini Live API + 前端自定義 Hooks (Audio, Camera, Screen)</td>
+              <td>實現語音、文字、影像的全雙工、低延遲即時互動，帶來極具沉浸感的使用者體驗。</td>
+            </tr>
+            <tr>
+              <td><strong>2. 會話與合規安全</strong></td>
+              <td>OAuth2 JWT 驗證 + PII Regex Redaction + PostgreSQL 雜湊鏈 (Hash Chain) 審計日誌</td>
+              <td>嚴格遮蔽敏感個資（如身分證字號），並利用前後雜湊關聯，確保審計日誌不可篡改、安全合規。</td>
+            </tr>
+            <tr>
+              <td><strong>3. 知識隔離與 RAG</strong></td>
+              <td>Model Context Protocol (MCP) Toolset + Vertex AI Embeddings + pgvector 語意檢索</td>
+              <td>限制 Agent 只能透過標準 API 查詢保單與 FAQ 知識庫，大幅降低 LLM 幻覺，確保推薦結果可控。</td>
+            </tr>
+            <tr>
+              <td><strong>4. 品質與智慧評估</strong></td>
+              <td>Pytest 自動化測試金字塔 + ADK Evals 框架 (LLM-as-a-Judge 指標打分)</td>
+              <td>結合傳統單元與整合測試，並導入「模型裁判」對 Agent 指令遵循與工具選擇進行自動化量化評估。</td>
+            </tr>
+            <tr>
+              <td><strong>5. 全方位可觀測性</strong></td>
+              <td>GenAI OpenTelemetry 語意規範 (Tracing) + GCS 備份 + BigQuery Analytics 成本監控</td>
+              <td>精確掌握 Agent 與工具執行耗時，並透過 BigQuery 結構化分析 SQL 即時監控 API 成本。</td>
+            </tr>
+            <tr>
+              <td><strong>6. 基礎設施與發布</strong></td>
+              <td>Terraform 多環境管理 + Workload Identity Federation (WIF) + Cloud Build 三階段 CD</td>
+              <td>環境徹底分離（Dev/Staging/Prod），免密鑰模擬身分安全建置，保障 Staging 與 Prod 的穩定發布。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-tip">
+          <strong>ARCHITECTURE REFLECTION:</strong>
+          <p>「軟體工程的本質在於管理複雜度；而 AI 系統工程的本質，則是在不確定的生成世界中，建構確定的合規防線。」—— 當你將這套系統部署至雲端，你已經具備了邁向頂尖 GenAI 架構師的堅實基礎。</p>
+        </div>
+
+        <p><strong>🔥 接下來的行動步驟：</strong></p>
+        <ul>
+          <li><strong>地端測試</strong>：嘗試執行 <code>make test</code> 與 <code>make eval-all</code>，觀察你的 Agent 如何在本地通過所有品質守門員。</li>
+          <li><strong>快速調優</strong>：使用 <code>make playground</code> 來微調 Prompt 或調整 <code>db/tools.local.yaml</code> 中的工具描述，感受 Evals 分數的變化。</li>
+          <li><strong>航向雲端</strong>：在個人沙盒專案中執行 <code>make setup-dev-env</code>，體驗一鍵將基礎設施與資料庫在 Google Cloud 點亮的成就感！</li>
+        </ul>
+
+        <hr />
+        <p><em>文件維護：AI 技術架構團隊 | 版本：v2.1 (Instructor & Architect Edition) | 2026-06-16</em></p>
+      </section>
+
+      </main>
+      </div>
+
+      <script>
+      // Initialize syntax highlighting
+      document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+
+      // Add copy buttons to all code blocks
+      document.querySelectorAll('.codelab-step pre').forEach(pre => {
+        const btn = document.createElement('button');
+        btn.className = 'code-copy-btn';
+        btn.textContent = '複製';
+        btn.title = '複製程式碼';
+        btn.addEventListener('click', () => {
+          const codeEl = pre.querySelector('code');
+          const text = codeEl ? codeEl.innerText : pre.innerText;
+          const copyFn = () => {
+            btn.textContent = '✓ 已複製';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.textContent = '複製';
+              btn.classList.remove('copied');
+            }, 2000);
+          };
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(copyFn).catch(() => {});
+          } else {
+            // Fallback for non-secure contexts
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); copyFn(); } catch (_) {}
+            document.body.removeChild(ta);
+          }
+        });
+        pre.appendChild(btn);
+      });
+
+      // Scrollspy: highlight active step in sidebar
+      const sections = document.querySelectorAll('.codelab-step');
+      const navItems = document.querySelectorAll('.codelab-nav__item');
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            navItems.forEach(item => {
+              item.classList.toggle('active', item.dataset.step === id.replace('step-', ''));
+            });
+          }
+        });
+      }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
+
+      sections.forEach(sec => observer.observe(sec));
+      });
+      </script>
+      </body>
+      </html>

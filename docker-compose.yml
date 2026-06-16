@@ -1,0 +1,107 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: insurance-db
+    environment:
+      POSTGRES_DB: insurance
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./db/audit_schema.sql:/docker-entrypoint-initdb.d/2-audit-schema.sql
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/3-seed.sql
+
+  toolbox:
+    image: us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:1.1.0
+    container_name: insurance-toolbox
+    ports:
+      - '${TOOLBOX_PORT:-5001}:5001'
+    environment:
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+      - GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION}
+      - GOOGLE_GENAI_USE_VERTEXAI=1
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp_creds.json
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=user
+      - DB_PASSWORD=password
+      - DB_NAME=insurance
+    volumes:
+      - ./db:/workspace/db
+      - ~/.config/gcloud/application_default_credentials.json:/tmp/gcp_creds.json:ro
+    command: [
+        '-a',
+        '0.0.0.0',
+        '-p',
+        '5001',
+        '--config',
+        '/workspace/db/tools.local.yaml',
+      ]
+    depends_on:
+      - db
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: insurance-backend
+    ports:
+      - '${BACKEND_PORT:-8080}:8080'
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+      - GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION}
+      - GOOGLE_GENAI_USE_VERTEXAI=${GOOGLE_GENAI_USE_VERTEXAI:-1}
+      - GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp_creds.json
+      - DATABASE_URL=postgresql+asyncpg://user:password@db:5432/insurance
+      - AUDIT_DB_PATH=postgresql+asyncpg://user:password@db:5432/insurance
+      - ADK_APP_NAME=${ADK_APP_NAME:-app}
+      - MODEL_NAME=${MODEL_NAME:-gemini-2.5-flash}
+      - LIVE_MODEL_NAME=${LIVE_MODEL_NAME:-gemini-live-2.5-flash-preview-native-audio-09-2025}
+      - TOOLBOX_SERVER_URL=http://toolbox:5001
+      - JWT_SECRET=${JWT_SECRET}
+      - AUDIT_LOG_ENABLED=${AUDIT_LOG_ENABLED:-1}
+      - AUDIT_RETENTION_DAYS=${AUDIT_RETENTION_DAYS:-365}
+      - AUDIT_HASH_SALT=${AUDIT_HASH_SALT:-change-me-in-production}
+      - PII_REDACTION_ENABLED=${PII_REDACTION_ENABLED:-1}
+      - ENABLE_CLOUD_TRACING=${ENABLE_CLOUD_TRACING:-0}
+      - ENABLE_CLOUD_LOGGING=${ENABLE_CLOUD_LOGGING:-0}
+      - OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-insurance-recommendation-agent}
+    volumes:
+      - ./db:/app/db
+      - ~/.config/gcloud/application_default_credentials.json:/tmp/gcp_creds.json:ro
+    depends_on:
+      - db
+      - toolbox
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # 提供給 Next.js 在 build time 寫死進前端靜態檔案
+      args:
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+        - NEXT_PUBLIC_FASTAPI_BASE_URL=${NEXT_PUBLIC_FASTAPI_BASE_URL:-http://backend:8080}
+        - NEXT_PUBLIC_APP_NAME=${ADK_APP_NAME:-app}
+    container_name: insurance-frontend
+    ports:
+      - '${FRONTEND_PORT:-3000}:3000'
+    # 提供給 Next.js 在 runtime 階段 Server-side 讀取
+    environment:
+      # --- 供瀏覽器端使用的變數 (Client-side) ---
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080}
+      - NEXT_PUBLIC_APP_NAME=${ADK_APP_NAME:-app}
+      - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+
+      # --- 供伺服器端使用的變數 (Server-side) ---
+      - FASTAPI_BASE_URL=${FASTAPI_BASE_URL_DOCKER:-http://backend:8080}
+      - NEXT_PUBLIC_FASTAPI_BASE_URL=${NEXT_PUBLIC_FASTAPI_BASE_URL:-http://backend:8080}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-local-dev-secret-do-not-use-in-prod}
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

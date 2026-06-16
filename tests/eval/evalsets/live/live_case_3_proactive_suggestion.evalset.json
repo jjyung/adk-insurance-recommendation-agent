@@ -1,0 +1,50 @@
+{
+  "eval_set_id": "insurance_recommendation_live_set",
+  "name": "Live Case 3: Proactive Suggestion",
+  "description": "Test for proactive suggestions in live mode.",
+  "eval_cases": [
+    {
+      "eval_id": "live_case_3_proactive_suggestion",
+      "conversation": [
+        {
+          "invocation_id": "live-3-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我 30 歲，預算 15000，想買醫療險。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "除了推薦醫療險方案 A，由於開啟了主動性功能，代理人應在回答最後主動提問，例如是否也需要了解意外險或壽險的基礎規劃。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_medical_products",
+                "args": {
+                  "age": 30,
+                  "budget": 15000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "live_test_user",
+        "state": {
+          "config:proactive_enabled": true
+        }
+      }
+    }
+  ]
+}

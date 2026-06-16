@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{TITLE}}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@400;500&family=Roboto+Mono:wght@400;500&display=swap" />
+  <!-- highlight.js for syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    /* =====================
+       CSS Reset & Variables
+       ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-primary: #1a73e8;
+      --color-primary-dark: #1557b0;
+      --color-surface: #ffffff;
+      --color-bg: #f8f9fa;
+      --color-border: #dadce0;
+      --color-text: #202124;
+      --color-text-secondary: #5f6368;
+      --color-step-done: #1a73e8;
+      --color-step-active: #1a73e8;
+      --color-step-inactive: #9aa0a6;
+      --color-note: #e8f0fe;
+      --color-note-border: #1a73e8;
+      --color-warning: #fef7e0;
+      --color-warning-border: #f9ab00;
+      --color-important: #fce8e6;
+      --color-important-border: #d93025;
+      --color-tip: #e6f4ea;
+      --color-tip-border: #1e8e3e;
+      --sidebar-width: 260px;
+      --header-height: 64px;
+      --font-body: 'Roboto', 'Google Sans', sans-serif;
+      --font-heading: 'Google Sans', 'Roboto', sans-serif;
+      --font-mono: 'Roboto Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      color: var(--color-text);
+      background: var(--color-bg);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* =====================
+       Top Header Bar
+       ===================== */
+    .codelab-header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: var(--header-height);
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      z-index: 200;
+      gap: 16px;
+    }
+    .codelab-header__logo {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-primary);
+      text-decoration: none;
+      letter-spacing: -0.3px;
+    }
+    .codelab-header__title {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      color: var(--color-text-secondary);
+      font-weight: 400;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .codelab-header__meta {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      white-space: nowrap;
+    }
+
+    /* =====================
+       Layout: Sidebar + Main
+       ===================== */
+    .codelab-body {
+      display: flex;
+      margin-top: var(--header-height);
+      flex: 1;
+    }
+
+    /* =====================
+       Left Sidebar (TOC)
+       ===================== */
+    .codelab-nav {
+      width: var(--sidebar-width);
+      min-width: var(--sidebar-width);
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      position: sticky;
+      top: var(--header-height);
+      height: calc(100vh - var(--header-height));
+      overflow-y: auto;
+      padding: 24px 0 40px;
+    }
+    .codelab-nav__heading {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      color: var(--color-text-secondary);
+      padding: 0 20px 12px;
+    }
+    .codelab-nav__list {
+      list-style: none;
+    }
+    .codelab-nav__item a {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 20px;
+      text-decoration: none;
+      color: var(--color-text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+      transition: background 0.15s, color 0.15s;
+      border-left: 3px solid transparent;
+    }
+    .codelab-nav__item a:hover {
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+    .codelab-nav__item.active a {
+      color: var(--color-primary);
+      border-left-color: var(--color-primary);
+      background: #e8f0fe;
+      font-weight: 500;
+    }
+    .codelab-nav__step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--color-step-inactive);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .codelab-nav__item.active .codelab-nav__step-num {
+      background: var(--color-step-active);
+    }
+    .codelab-nav__item.done .codelab-nav__step-num {
+      background: var(--color-step-done);
+    }
+    .codelab-nav__step-title { flex: 1; }
+
+    /* =====================
+       Main Content Area
+       ===================== */
+    .codelab-main {
+      flex: 1;
+      min-width: 0;
+      padding: 40px 48px 80px;
+      max-width: 900px;
+    }
+
+    /* Step Section */
+    .codelab-step {
+      display: block;
+      margin-bottom: 80px;
+      scroll-margin-top: calc(var(--header-height) + 24px);
+    }
+    .codelab-step__header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .codelab-step__num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 700;
+      font-family: var(--font-heading);
+      flex-shrink: 0;
+    }
+    .codelab-step__title {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-text);
+      line-height: 1.25;
+    }
+
+    /* Typography */
+    .codelab-step p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--color-text);
+      margin-bottom: 16px;
+    }
+    .codelab-step h3 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 600;
+      margin: 32px 0 12px;
+      color: var(--color-text);
+    }
+    .codelab-step h4 {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 600;
+      margin: 24px 0 8px;
+      color: var(--color-text);
+    }
+    .codelab-step ul, .codelab-step ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+    .codelab-step li {
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 6px;
+    }
+
+    /* Inline code */
+    .codelab-step code:not(pre code) {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      background: #f1f3f4;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 1px 6px;
+      color: #c0392b;
+    }
+
+    /* Code blocks */
+    .codelab-step pre {
+      background: #f8f9fa;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 20px 24px;
+      overflow-x: auto;
+      margin: 20px 0;
+      position: relative;
+    }
+    .codelab-step pre code {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.6;
+      background: none;
+      border: none;
+      padding: 0;
+      color: inherit;
+    }
+    /* Language label on code blocks */
+    .codelab-step pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 10px;
+      left: 16px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      pointer-events: none;
+    }
+
+    /* Copy button for code blocks */
+    .code-copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      background: transparent;
+      border: 1px solid var(--color-border);
+      border-radius: 4px;
+      color: var(--color-text-secondary);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 10px;
+      cursor: pointer;
+      line-height: 1.6;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      user-select: none;
+    }
+    .code-copy-btn:hover {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+    .code-copy-btn.copied {
+      background: var(--color-tip-border);
+      color: #fff;
+      border-color: var(--color-tip-border);
+    }
+
+    /* Tables */
+    .codelab-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .codelab-table th {
+      background: var(--color-bg);
+      font-weight: 600;
+      text-align: left;
+      padding: 10px 16px;
+      border-bottom: 2px solid var(--color-border);
+    }
+    .codelab-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .codelab-table tr:last-child td { border-bottom: none; }
+    .codelab-table tr:hover td { background: var(--color-bg); }
+
+    /* Images */
+    .codelab-step img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid var(--color-border);
+      display: block;
+      margin: 24px auto;
+    }
+    .codelab-img-wrapper {
+      text-align: center;
+      margin: 24px 0;
+    }
+    .codelab-img-caption {
+      font-size: 13px;
+      color: var(--color-text-secondary);
+      margin-top: 8px;
+      font-style: italic;
+    }
+    /* Image placeholder (when image file not found) */
+    .codelab-img-placeholder {
+      background: #fef7e0;
+      border: 2px dashed var(--color-warning-border);
+      border-radius: 8px;
+      padding: 24px;
+      text-align: center;
+      color: #856404;
+      font-size: 14px;
+      margin: 24px 0;
+    }
+    .codelab-img-placeholder::before {
+      content: "⬛ 待補圖：";
+    }
+
+    /* =====================
+       Callout Boxes
+       ===================== */
+    .callout {
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 20px 0;
+      border-left: 4px solid;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    .callout p { margin: 0; font-size: 14px; }
+    .callout strong:first-child {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .callout-note {
+      background: var(--color-note);
+      border-color: var(--color-note-border);
+      color: #174ea6;
+    }
+    .callout-note strong:first-child { color: var(--color-note-border); }
+    .callout-warning {
+      background: var(--color-warning);
+      border-color: var(--color-warning-border);
+      color: #7a5200;
+    }
+    .callout-warning strong:first-child { color: var(--color-warning-border); }
+    .callout-important {
+      background: var(--color-important);
+      border-color: var(--color-important-border);
+      color: #7c2b29;
+    }
+    .callout-important strong:first-child { color: var(--color-important-border); }
+    .callout-tip {
+      background: var(--color-tip);
+      border-color: var(--color-tip-border);
+      color: #0d5226;
+    }
+    .callout-tip strong:first-child { color: var(--color-tip-border); }
+
+    /* =====================
+       Step Navigation (Bottom)
+       ===================== */
+    .codelab-step-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--color-border);
+    }
+    .codelab-step-nav a {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.15s, color 0.15s;
+      color: var(--color-primary);
+      border: 1px solid var(--color-border);
+    }
+    .codelab-step-nav a:hover {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+    .codelab-step-nav .prev::before { content: "← "; }
+    .codelab-step-nav .next::after  { content: " →"; }
+
+    /* =====================
+       Scrollspy: highlight active step in sidebar
+       ===================== */
+
+    /* =====================
+       Responsive
+       ===================== */
+    @media (max-width: 768px) {
+      .codelab-nav { display: none; }
+      .codelab-main { padding: 24px 20px 60px; }
+      .codelab-step__title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="codelab-header">
+    <a class="codelab-header__logo" href="#">Codelabs</a>
+    <span class="codelab-header__title">{{TITLE}}</span>
+    <span class="codelab-header__meta">{{AUTHOR}}{{#if AUTHOR}} · {{/if}}{{DATE}}</span>
+  </header>
+
+  <div class="codelab-body">
+
+    <!-- Left Sidebar TOC -->
+    <nav class="codelab-nav" id="codelab-nav">
+      <p class="codelab-nav__heading">目錄</p>
+      <ul class="codelab-nav__list" id="step-list">
+        {{STEP_LIST}}
+        <!-- Example item (generated by agent):
+        <li class="codelab-nav__item" data-step="1">
+          <a href="#step-1">
+            <span class="codelab-nav__step-num">1</span>
+            <span class="codelab-nav__step-title">概覽</span>
+          </a>
+        </li>
+        -->
+      </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="codelab-main" id="codelab-main">
+
+      {{SECTIONS}}
+      <!--
+      Example section (generated by agent):
+      <section class="codelab-step" id="step-1">
+        <div class="codelab-step__header">
+          <span class="codelab-step__num">1</span>
+          <h2 class="codelab-step__title">概覽</h2>
+        </div>
+        <!-- step content goes here -->
+        <div class="codelab-step-nav">
+          <span></span>
+          <a class="next" href="#step-2">環境準備</a>
+        </div>
+      </section>
+      -->
+
+    </main>
+  </div>
+
+  <script>
+    // Initialize syntax highlighting
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('pre code').forEach(el => hljs.highlightElement(el));
+
+      // Add copy buttons to all code blocks
+      document.querySelectorAll('.codelab-step pre').forEach(pre => {
+        const btn = document.createElement('button');
+        btn.className = 'code-copy-btn';
+        btn.textContent = '複製';
+        btn.title = '複製程式碼';
+        btn.addEventListener('click', () => {
+          const codeEl = pre.querySelector('code');
+          const text = codeEl ? codeEl.innerText : pre.innerText;
+          const copyFn = () => {
+            btn.textContent = '✓ 已複製';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.textContent = '複製';
+              btn.classList.remove('copied');
+            }, 2000);
+          };
+          if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text).then(copyFn).catch(() => {});
+          } else {
+            // Fallback for non-secure contexts
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); copyFn(); } catch (_) {}
+            document.body.removeChild(ta);
+          }
+        });
+        pre.appendChild(btn);
+      });
+
+      // Scrollspy: highlight active step in sidebar
+      const sections = document.querySelectorAll('.codelab-step');
+      const navItems = document.querySelectorAll('.codelab-nav__item');
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const id = entry.target.id;
+            navItems.forEach(item => {
+              item.classList.toggle('active', item.dataset.step === id.replace('step-', ''));
+            });
+          }
+        });
+      }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
+
+      sections.forEach(sec => observer.observe(sec));
+    });
+  </script>
+</body>
+</html>

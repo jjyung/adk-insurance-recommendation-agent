@@ -1,0 +1,52 @@
+{
+  "eval_set_id": "insurance_core_case_3_set",
+  "name": "Insurance core case 3 family protection",
+  "description": "Single-case evaluation for family protection recommendation.",
+  "eval_cases": [
+    {
+      "eval_id": "case_3_family_protection",
+      "conversation": [
+        {
+          "invocation_id": "case-3-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我 42 歲，已婚有小孩，年度預算 30000，想補家庭保障。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "回覆應根據工具查詢結果推薦家庭保障或壽險相關商品，說明家庭責任、推薦原因、預算符合程度、等待期或除外條款，且不得保證核保、理賠或收益。最後需附上本建議僅供初步商品篩選，實際投保仍需以商品條款、健康告知與核保結果為準。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "get_user_profile_snapshot",
+                "args": {}
+              },
+              {
+                "name": "search_family_protection_products",
+                "args": {
+                  "age": 42,
+                  "budget": 30000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "test_user",
+        "state": {}
+      }
+    }
+  ]
+}

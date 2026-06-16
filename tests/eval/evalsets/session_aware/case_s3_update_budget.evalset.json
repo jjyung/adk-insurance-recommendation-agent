@@ -1,0 +1,59 @@
+{
+  "eval_set_id": "insurance_session_case_s3_set",
+  "name": "Insurance session-aware case S3 update budget",
+  "description": "Single-case evaluation for updating budget while reusing existing session state.",
+  "eval_cases": [
+    {
+      "eval_id": "session_case_s3_update_budget",
+      "conversation": [
+        {
+          "invocation_id": "session-case-s3-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "預算改成 20000。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "應理解這是既有條件更新，先讀取既有 session 狀態，再將預算更新為 20000，並沿用既有需求脈絡，不應重新追問所有已知欄位。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "get_user_profile_snapshot",
+                "args": {}
+              },
+              {
+                "name": "save_user_profile",
+                "args": {
+                  "budget": 20000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "test_user_session",
+        "state": {
+          "user:age": 42,
+          "user:budget": 30000,
+          "user:main_goal": "family_protection",
+          "user:marital_status": "married",
+          "user:has_children": true,
+          "user:last_recommended_product_name": "家庭定期壽險方案 C",
+          "user:last_recommended_product_id": 3
+        }
+      }
+    }
+  ]
+}

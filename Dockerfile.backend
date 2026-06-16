@@ -1,0 +1,36 @@
+# Use Python 3.12 as the base image
+FROM python:3.12-slim
+
+# Install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Set working directory
+WORKDIR /app
+
+# Update and install minimal dependencies, clear cache
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency files
+COPY pyproject.toml uv.lock ./
+
+# Install dependencies using uv (--extra gcp for cloud integrations)
+RUN uv sync --frozen --no-cache --extra gcp
+
+# Copy the rest of the application code
+COPY app/ ./app/
+COPY db/ ./db/
+COPY scripts/ ./scripts/
+
+# Create a non-root user and switch to it
+RUN useradd -m -u 1000 appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+# Expose the default port
+EXPOSE 8080
+
+# Command to run the application
+# Use sh -c to allow environment variable expansion for PORT
+CMD ["sh", "-c", "uv run uvicorn app.api.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+

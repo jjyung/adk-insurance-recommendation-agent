@@ -1,0 +1,60 @@
+{
+  "eval_set_id": "insurance_recommendation_extended_case_6_set",
+  "name": "Insurance extended case 6 no exact match senior low budget medical",
+  "description": "Single-case evaluation for senior low-budget medical recommendation with no exact match.",
+  "eval_cases": [
+    {
+      "eval_id": "case_6_no_exact_match_senior_low_budget_medical",
+      "conversation": [
+        {
+          "invocation_id": "case-6-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我 68 歲，年度預算 10000，想加強醫療保障。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "應誠實說明沒有完全符合條件的醫療商品，或僅能提供最接近候選且需明確標示不完全符合；不得虛構商品，並需附上保守聲明。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "get_user_profile_snapshot",
+                "args": {}
+              },
+              {
+                "name": "save_user_profile",
+                "args": {
+                  "age": 68,
+                  "budget": 10000,
+                  "main_goal": "medical"
+                }
+              },
+              {
+                "name": "search_medical_products",
+                "args": {
+                  "age": 68,
+                  "budget": 10000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "test_user",
+        "state": {}
+      }
+    }
+  ]
+}

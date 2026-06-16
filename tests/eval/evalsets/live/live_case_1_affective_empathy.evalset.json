@@ -1,0 +1,50 @@
+{
+  "eval_set_id": "insurance_recommendation_live_set",
+  "name": "Live Case 1: Affective Empathy",
+  "description": "Test for affective dialog/empathy in live mode.",
+  "eval_cases": [
+    {
+      "eval_id": "live_case_1_affective_empathy",
+      "conversation": [
+        {
+          "invocation_id": "live-1-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "最近因為工作壓力大常跑醫院，覺得身體有點吃不消... 我今年 35 歲，想規劃一下醫療險，預算大概每年 20000 元。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "應先對使用者的健康狀況與工作壓力表示關懷（同理心），接著根據 35 歲與 20000 預算，推薦合適的醫療保險方案（如安心住院醫療方案 A），並說明保障重點、等待期與除外條款，最後附上保守聲明。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_medical_products",
+                "args": {
+                  "age": 35,
+                  "budget": 20000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "live_test_user",
+        "state": {
+          "config:affective_enabled": true
+        }
+      }
+    }
+  ]
+}

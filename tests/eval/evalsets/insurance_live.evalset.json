@@ -1,0 +1,175 @@
+{
+  "eval_set_id": "insurance_recommendation_live_set",
+  "name": "Insurance recommendation live mode scenarios",
+  "description": "Evaluation set for testing Live Mode features: Affective Dialog, Proactivity, and Real-time interaction patterns.",
+  "eval_cases": [
+    {
+      "eval_id": "live_case_1_affective_empathy",
+      "conversation": [
+        {
+          "invocation_id": "live-1-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "最近因為工作壓力大常跑醫院，覺得身體有點吃不消... 我今年 35 歲，想規劃一下醫療險，預算大概每年 20000 元。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "應先對使用者的健康狀況與工作壓力表示關懷（同理心），接著根據 35 歲與 20000 預算，推薦合適的醫療保險方案（如安心住院醫療方案 A），並說明保障重點、等待期與除外條款，最後附上保守聲明。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_medical_products",
+                "args": {
+                  "age": 35,
+                  "budget": 20000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "live_test_user",
+        "state": {
+          "config:affective_enabled": true
+        }
+      }
+    },
+    {
+      "eval_id": "live_case_2_fragmented_speech",
+      "conversation": [
+        {
+          "invocation_id": "live-2-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "那個... 我想了解一下... 42 歲的... 家庭保障... 預算大概是三萬吧。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "應正確識別年齡 42 歲、家庭保障需求、預算 30000，推薦家庭定期壽險方案 C，說明家庭責任、等待期、除外條款，並附上保守聲明。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_family_protection_products",
+                "args": {
+                  "age": 42,
+                  "budget": 30000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "live_test_user",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "live_case_3_proactive_suggestion",
+      "conversation": [
+        {
+          "invocation_id": "live-3-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我 30 歲，預算 15000，想買醫療險。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "除了推薦醫療險方案 A，由於開啟了主動性功能，代理人應在回答最後主動提問，例如是否也需要了解意外險或壽險的基礎規劃。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_medical_products",
+                "args": {
+                  "age": 30,
+                  "budget": 15000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "live_test_user",
+        "state": {
+          "config:proactive_enabled": true
+        }
+      }
+    },
+    {
+      "eval_id": "live_case_4_realtime_correction",
+      "conversation": [
+        {
+          "invocation_id": "live-4-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我要看醫療險，我 28 歲，預算一萬... 喔不，是改為兩萬。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "應以更正後的預算 20000 為準進行搜尋，推薦醫療保險方案 A，說明保障細節、等待期、除外條款，並附上保守聲明。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_medical_products",
+                "args": {
+                  "age": 28,
+                  "budget": 20000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "live_test_user",
+        "state": {}
+      }
+    }
+  ]
+}

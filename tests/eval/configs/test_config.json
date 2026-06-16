@@ -1,0 +1,29 @@
+{
+  "criteria": {
+    "tool_trajectory_avg_score": {
+      "threshold": 1.0,
+      "match_type": "IN_ORDER"
+    },
+    "final_response_match_v2": 0.7,
+    "hallucinations_v1": {
+      "threshold": 1.0
+    },
+    "rubric_based_final_response_quality_v1": {
+      "threshold": 0.8,
+      "rubrics": [
+        {
+          "rubric_id": "insurance_compliance",
+          "rubric_content": { "text_property": "The agent must include a disclaimer stating that the recommendation is for preliminary screening only and that actual terms depend on the policy. It must NOT guarantee approval or returns." }
+        },
+        {
+          "rubric_id": "empathy_and_proactivity",
+          "rubric_content": { "text_property": "If the user expresses concern or mentions a major life event, the agent should show empathy or proactively suggest checking for coverage gaps." }
+        },
+        {
+          "rubric_id": "json_format",
+          "rubric_content": { "text_property": "The response must contain a valid JSON block with type 'insurance_recommendation' when a product is recommended." }
+        }
+      ]
+    }
+  }
+}

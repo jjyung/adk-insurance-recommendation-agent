@@ -1,0 +1,44 @@
+# .cloudbuild/pr_checks.yaml
+# PR Checks: Linting, Unit Tests, and Terraform Plan
+
+steps:
+  # 1. Environment Setup & Linting
+  - name: 'ghcr.io/astral-sh/uv:python3.12-bookworm-slim'
+    id: 'lint'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        uv sync --dev --extra lint --frozen
+        uv run codespell app/
+        uv run ruff check app/ --diff
+        uv run ruff format app/ --check --diff
+        uv run ty check app/
+
+  # 2. Unit & Integration Tests
+  - name: 'ghcr.io/astral-sh/uv:python3.12-bookworm-slim'
+    id: 'test'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        uv sync --dev --frozen
+        uv run pytest tests/unit tests/integration
+
+  # 3. Terraform Format & Plan (Dev Environment)
+  - name: 'hashicorp/terraform:1.7.0'
+    id: 'tf-plan-dev'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        cd deployment/terraform/dev
+        terraform fmt -check
+        terraform init -backend=false
+        terraform validate
+
+substitutions:
+  _DEV_PROJECT_ID: 'your-dev-project-id'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

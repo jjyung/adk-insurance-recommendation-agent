@@ -1,0 +1,53 @@
+{
+  "eval_set_id": "insurance_session_case_s2_set",
+  "name": "Insurance session-aware case S2 follow up with last product",
+  "description": "Single-case evaluation for follow-up question using last recommended product from session state.",
+  "eval_cases": [
+    {
+      "eval_id": "session_case_s2_follow_up_with_last_product",
+      "conversation": [
+        {
+          "invocation_id": "session-case-s2-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "那等待期呢？"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "應延續既有推薦商品上下文，不重新追問年齡、預算或目標，並回答等待期或相關商品細節。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "get_user_profile_snapshot",
+                "args": {}
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "test_user_session",
+        "state": {
+          "user:age": 42,
+          "user:budget": 30000,
+          "user:main_goal": "family_protection",
+          "user:marital_status": "married",
+          "user:has_children": true,
+          "user:last_recommended_product_name": "家庭定期壽險方案 C",
+          "user:last_recommended_product_id": 3
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,394 @@
+kind: source
+name: insurance_postgres
+type: postgres
+host: ${DB_HOST}
+port: ${DB_PORT}
+user: ${DB_USER}
+password: "${DB_PASSWORD}"
+database: ${DB_NAME}
+
+---
+kind: embeddingModel
+name: vertex_embedding
+type: gemini
+model: gemini-embedding-001
+dimension: 768
+
+---
+kind: tool
+name: search_medical_products
+type: postgres-sql
+source: insurance_postgres
+description: Search medical insurance products by age and annual budget.
+parameters:
+  - name: age
+    type: integer
+    description: User age.
+  - name: budget
+    type: integer
+    description: Annual insurance budget.
+statement: |
+  WITH input(age, budget) AS (
+    SELECT $1::INT, $2::INT
+  )
+  SELECT
+    p.product_id,
+    p.product_name,
+    p.product_type,
+    p.annual_premium_min,
+    p.annual_premium_max,
+    p.coverage_focus,
+    p.coverage_summary,
+    p.waiting_period_days,
+    p.exclusions,
+    CASE
+      WHEN p.annual_premium_max <= input.budget THEN 'fully_within_budget'
+      WHEN p.annual_premium_min <= input.budget THEN 'entry_affordable'
+      ELSE 'over_budget'
+    END AS budget_fit
+  FROM insurance_products p
+  CROSS JOIN input
+  WHERE p.is_active = 1
+    AND input.age BETWEEN p.target_age_min AND p.target_age_max
+    AND p.annual_premium_min <= input.budget
+    AND p.product_type = 'medical'
+  ORDER BY
+    CASE
+      WHEN p.annual_premium_max <= input.budget THEN 0
+      ELSE 1
+    END,
+    p.annual_premium_min ASC;
+
+---
+kind: tool
+name: search_accident_products
+type: postgres-sql
+source: insurance_postgres
+description: Search accident insurance products by age and annual budget.
+parameters:
+  - name: age
+    type: integer
+    description: User age.
+  - name: budget
+    type: integer
+    description: Annual insurance budget.
+statement: |
+  WITH input(age, budget) AS (
+    SELECT $1::INT, $2::INT
+  )
+  SELECT
+    p.product_id,
+    p.product_name,
+    p.product_type,
+    p.annual_premium_min,
+    p.annual_premium_max,
+    p.coverage_focus,
+    p.coverage_summary,
+    p.waiting_period_days,
+    p.exclusions,
+    CASE
+      WHEN p.annual_premium_max <= input.budget THEN 'fully_within_budget'
+      WHEN p.annual_premium_min <= input.budget THEN 'entry_affordable'
+      ELSE 'over_budget'
+    END AS budget_fit
+  FROM insurance_products p
+  CROSS JOIN input
+  WHERE p.is_active = 1
+    AND input.age BETWEEN p.target_age_min AND p.target_age_max
+    AND p.annual_premium_min <= input.budget
+    AND p.product_type = 'accident'
+  ORDER BY
+    CASE
+      WHEN p.annual_premium_max <= input.budget THEN 0
+      ELSE 1
+    END,
+    p.annual_premium_min ASC;
+
+---
+kind: tool
+name: search_family_protection_products
+type: postgres-sql
+source: insurance_postgres
+description: Search family protection candidates, primarily life insurance, by age and annual budget.
+parameters:
+  - name: age
+    type: integer
+    description: User age.
+  - name: budget
+    type: integer
+    description: Annual insurance budget.
+statement: |
+  WITH input(age, budget) AS (
+    SELECT $1::INT, $2::INT
+  )
+  SELECT
+    p.product_id,
+    p.product_name,
+    p.product_type,
+    p.annual_premium_min,
+    p.annual_premium_max,
+    p.coverage_focus,
+    p.coverage_summary,
+    p.waiting_period_days,
+    p.exclusions,
+    CASE
+      WHEN p.annual_premium_max <= input.budget THEN 'fully_within_budget'
+      WHEN p.annual_premium_min <= input.budget THEN 'entry_affordable'
+      ELSE 'over_budget'
+    END AS budget_fit
+  FROM insurance_products p
+  CROSS JOIN input
+  WHERE p.is_active = 1
+    AND input.age BETWEEN p.target_age_min AND p.target_age_max
+    AND p.annual_premium_min <= input.budget
+    AND p.product_type = 'life'
+  ORDER BY
+    CASE
+      WHEN p.annual_premium_max <= input.budget THEN 0
+      ELSE 1
+    END,
+    p.annual_premium_min ASC;
+
+---
+kind: tool
+name: search_income_protection_products
+type: postgres-sql
+source: insurance_postgres
+description: Search income protection candidates, prioritizing critical illness products, by age and annual budget.
+parameters:
+  - name: age
+    type: integer
+    description: User age.
+  - name: budget
+    type: integer
+    description: Annual insurance budget.
+statement: |
+  WITH input(age, budget) AS (
+    SELECT $1::INT, $2::INT
+  )
+  SELECT
+    p.product_id,
+    p.product_name,
+    p.product_type,
+    p.annual_premium_min,
+    p.annual_premium_max,
+    p.coverage_focus,
+    p.coverage_summary,
+    p.waiting_period_days,
+    p.exclusions,
+    CASE
+      WHEN p.annual_premium_max <= input.budget THEN 'fully_within_budget'
+      WHEN p.annual_premium_min <= input.budget THEN 'entry_affordable'
+      ELSE 'over_budget'
+    END AS budget_fit
+  FROM insurance_products p
+  CROSS JOIN input
+  WHERE p.is_active = 1
+    AND input.age BETWEEN p.target_age_min AND p.target_age_max
+    AND p.annual_premium_min <= input.budget
+    AND p.product_type IN ('critical_illness', 'life')
+  ORDER BY
+    CASE
+      WHEN p.annual_premium_max <= input.budget THEN 0
+      ELSE 1
+    END,
+    CASE
+      WHEN p.product_type = 'critical_illness' THEN 0
+      ELSE 1
+    END,
+    p.annual_premium_min ASC;
+
+---
+kind: tool
+name: get_product_detail
+type: postgres-sql
+source: insurance_postgres
+description: Get detailed information for a single insurance product by product_id.
+parameters:
+  - name: product_id
+    type: integer
+    description: Insurance product ID.
+statement: |
+  SELECT
+    product_id,
+    product_name,
+    product_type,
+    target_age_min,
+    target_age_max,
+    annual_premium_min,
+    annual_premium_max,
+    coverage_focus,
+    coverage_summary,
+    waiting_period_days,
+    exclusions,
+    is_active
+  FROM insurance_products
+  WHERE product_id = $1
+    AND is_active = 1;
+
+---
+kind: tool
+name: get_recommendation_rules
+type: postgres-sql
+source: insurance_postgres
+description: Get recommendation rules by product type.
+parameters:
+  - name: product_type
+    type: string
+    description: Product type. One of medical, accident, life, critical_illness.
+statement: |
+  SELECT
+    rule_id,
+    rule_name,
+    product_type,
+    condition_json,
+    recommendation_logic,
+    priority
+  FROM recommendation_rules
+  WHERE is_active = 1
+    AND product_type = $1
+  ORDER BY priority ASC;
+
+---
+kind: tool
+name: get_product_by_name
+type: postgres-sql
+source: insurance_postgres
+description: Get insurance product basic information by exact product name.
+parameters:
+  - name: product_name
+    type: string
+    description: Exact insurance product name.
+statement: |
+  SELECT
+    product_id,
+    product_name,
+    product_type,
+    annual_premium_min,
+    annual_premium_max,
+    coverage_focus,
+    coverage_summary,
+    waiting_period_days,
+    exclusions
+  FROM insurance_products
+  WHERE is_active = 1
+    AND product_name = $1;
+
+---
+kind: tool
+name: search_faq
+type: postgres-sql
+source: insurance_postgres
+description: Semantic search for insurance FAQ and terms explanation.
+parameters:
+  - name: query
+    type: string
+    description: The natural language search query or FAQ topic.
+    embeddedBy: vertex_embedding
+statement: |
+  SELECT
+      f.question,
+      f.answer,
+      (v.embedding <=> $1::vector) as distance,
+      f.related_product_type
+  FROM faq_knowledge f
+  JOIN vec_faq_knowledge v ON f.faq_id = v.faq_id
+  ORDER BY distance ASC
+  LIMIT 3;
+
+---
+kind: toolset
+name: insurance_recommendation_tools
+tools:
+  - search_medical_products
+  - search_accident_products
+  - search_family_protection_products
+  - search_income_protection_products
+  - get_product_by_name
+  - get_product_detail
+  - get_recommendation_rules
+  - search_faq
+
+---
+kind: toolset
+name: insurance_debug_tools
+tools:
+  - get_product_by_name
+  - get_product_detail
+  - get_recommendation_rules
+  - search_faq
+
+---
+kind: prompt
+name: insurance_followup_question_template
+description: "Template for asking follow-up questions when required user information is incomplete."
+messages:
+  - role: user
+    content: |
+      使用者目前已提供的資訊如下：
+
+      {{.known_information}}
+
+      請以保險推薦代理的角色，向使用者追問缺少的核心必要資訊。
+
+      核心必要資訊包括：
+      - 年齡
+      - 預算
+      - 主要保障目標
+
+      請遵守以下原則：
+      1. 用自然、簡潔、友善的中文發問
+      2. 不要直接推薦商品
+      3. 不要加入未經查詢的商品資訊
+arguments:
+  - name: known_information
+    description: "Currently known user information."
+
+---
+kind: prompt
+name: insurance_recommendation_response_template
+description: "Template for generating a structured insurance recommendation response from tool results."
+messages:
+  - role: user
+    content: |
+      請根據以下資料生成初步保險推薦回覆。
+
+      使用者條件摘要：
+      {{.user_profile}}
+
+      推薦商品資料：
+      {{.product_candidates}}
+
+      規則依據：
+      {{.recommendation_rules}}
+
+      請用繁體中文輸出，並遵守以下格式原則：
+      1. 先說明推薦商品名稱
+      2. 再說明推薦原因
+      3. 若有條件限制，需清楚提醒
+      4. 若有等待期或除外條款，需簡短說明
+      5. 若沒有完全符合條件的商品，需誠實說明並提供最接近候選方案
+      6. 不可承諾保證核保、保證理賠或保證收益
+      7. 不可虛構工具結果中不存在的資訊
+      8. 若推薦商品資料包含 budget_fit，請依下列規則描述預算符合程度：
+         - budget_fit = "fully_within_budget"：可說明商品列示保費範圍符合使用者年度預算
+         - budget_fit = "entry_affordable"：必須說明入門保費看起來符合預算，但較高保障方案可能超出預算
+         - 不得在 annual_premium_max 高於使用者預算時，宣稱商品完整符合預算
+arguments:
+  - name: user_profile
+    description: "Normalized user profile summary."
+  - name: product_candidates
+    description: "Candidate insurance products returned by tools."
+  - name: recommendation_rules
+    description: "Recommendation rules returned by tools."
+
+---
+kind: prompt
+name: insurance_disclaimer_template
+description: "Standard disclaimer for insurance recommendation responses."
+messages:
+  - role: user
+    content: |
+      請在回覆最後附上以下保守聲明，保持原意，不可省略：
+
+      本建議僅供初步商品篩選，實際投保仍需以商品條款、健康告知與核保結果為準。

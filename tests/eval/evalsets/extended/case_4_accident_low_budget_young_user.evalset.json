@@ -1,0 +1,60 @@
+{
+  "eval_set_id": "insurance_recommendation_extended_case_4_set",
+  "name": "Insurance extended case 4 accident low budget young user",
+  "description": "Single-case evaluation for accident insurance with young low-budget user.",
+  "eval_cases": [
+    {
+      "eval_id": "case_4_accident_low_budget_young_user",
+      "conversation": [
+        {
+          "invocation_id": "case-4-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我 27 歲，年度預算 8000，想先補意外保障。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "應優先推薦新鮮人基礎保障方案 F 或合理說明安心意外防護方案 D 是否接近預算，並說明低預算、年輕族群、意外保障重點、預算符合程度、除外條款與保守聲明。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "get_user_profile_snapshot",
+                "args": {}
+              },
+              {
+                "name": "save_user_profile",
+                "args": {
+                  "age": 27,
+                  "budget": 8000,
+                  "main_goal": "accident"
+                }
+              },
+              {
+                "name": "search_accident_products",
+                "args": {
+                  "age": 27,
+                  "budget": 8000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "test_user",
+        "state": {}
+      }
+    }
+  ]
+}

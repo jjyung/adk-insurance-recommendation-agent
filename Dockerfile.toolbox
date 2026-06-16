@@ -1,0 +1,8 @@
+FROM us-central1-docker.pkg.dev/database-toolbox/toolbox/toolbox:1.1.0
+
+# Copy all configuration files
+COPY db/tools.cloud.yaml /db/tools.cloud.yaml
+
+ENTRYPOINT ["/toolbox"]
+# Bind to specific internal port for Sidecar communication
+CMD ["-a", "0.0.0.0", "-p", "8081", "--config", "/db/tools.cloud.yaml"]

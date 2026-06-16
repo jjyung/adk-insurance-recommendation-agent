@@ -1,0 +1,48 @@
+{
+  "eval_set_id": "insurance_recommendation_extended_case_5_set",
+  "name": "Insurance extended case 5 income protection",
+  "description": "Single-case evaluation for income protection recommendation.",
+  "eval_cases": [
+    {
+      "eval_id": "case_5_income_protection",
+      "conversation": [
+        {
+          "invocation_id": "case-5-turn-1",
+          "user_content": {
+            "parts": [
+              {
+                "text": "我 38 歲，已婚有小孩，年度預算 25000，想加強收入中斷風險保障。"
+              }
+            ],
+            "role": "user"
+          },
+          "final_response": {
+            "parts": [
+              {
+                "text": "回覆應根據收入中斷風險保障工具查詢結果，說明重大疾病或壽險候選商品的適配性、推薦原因、預算符合程度、等待期或除外條款，且不得保證核保、理賠或收益。若商品只有入門保費符合預算，必須說明較高保障方案可能超出預算。最後需附上本建議僅供初步商品篩選，實際投保仍需以商品條款、健康告知與核保結果為準。"
+              }
+            ],
+            "role": null
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "search_income_protection_products",
+                "args": {
+                  "age": 38,
+                  "budget": 25000
+                }
+              }
+            ],
+            "intermediate_responses": []
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "app",
+        "user_id": "test_user",
+        "state": {}
+      }
+    }
+  ]
+}

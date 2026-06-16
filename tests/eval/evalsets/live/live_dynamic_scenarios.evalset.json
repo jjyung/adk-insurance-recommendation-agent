@@ -1,0 +1,35 @@
+{
+  "eval_set_id": "insurance_recommendation_live_dynamic_set",
+  "name": "Live Mode Dynamic Scenarios",
+  "description": "Dynamic evaluation cases for affective empathy and proactive suggestions using User Simulation.",
+  "eval_cases": [
+    {
+      "eval_id": "live_case_1_affective_empathy_dynamic",
+      "conversation_scenario": {
+        "starting_prompt": "最近因為工作壓力大常跑醫院，覺得身體有點吃不消... 我今年 35 歲，想規劃一下醫療險，預算大概每年 20000 元。",
+        "conversation_plan": "你是一個感到壓力與疲憊的 35 歲上班族。如果代理人在對話初期有對你的壓力與健康表達同理心與關懷，請表示感謝並繼續討論醫療險方案。如果代理人完全忽略你的感受直接進入推銷模式，請表達你的失望並終止對話。在討論過程中，請至少詢問一次關於『等待期』或『除外條款』的問題。"
+      },
+      "session_input": {
+        "app_name": "app",
+        "user_id": "live_test_user",
+        "state": {
+          "config:affective_enabled": true
+        }
+      }
+    },
+    {
+      "eval_id": "live_case_3_proactive_suggestion_dynamic",
+      "conversation_scenario": {
+        "starting_prompt": "我剛結婚了，最近正在考慮跟老婆一起買個小房子。喔對了，幫我看一下我之前的醫療險推薦。",
+        "conversation_plan": "你是一個剛結婚並打算買房的年輕人。你原本只想看醫療險，但如果代理人主動注意到你提到的重大生活轉變（結婚、買房）並提議檢視家庭保障或壽險缺口（Proactive suggestion），請對其專業度表示讚賞，並請他說明為什麼現在需要看家庭保障。如果代理人只回答醫療險問題而完全沒提到結婚/買房的風險缺口，請在對話最後表現出代理人好像不夠貼心的感覺。"
+      },
+      "session_input": {
+        "app_name": "app",
+        "user_id": "live_test_user",
+        "state": {
+          "config:proactive_enabled": true
+        }
+      }
+    }
+  ]
+}

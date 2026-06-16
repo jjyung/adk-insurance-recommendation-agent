@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance Agent Makefile 指令手冊</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --code-bg: #f1f5f9;
+            --success: #10b981;
+            --sidebar-width: 280px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--card-bg);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 0.375rem;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--code-bg);
+            color: var(--primary);
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 2rem 3rem;
+            max-width: 1200px;
+        }
+
+        .header {
+            margin-bottom: 3rem;
+        }
+
+        .search-container {
+            position: relative;
+            max-width: 600px;
+            margin-top: 1.5rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            background: var(--card-bg);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        /* Groups */
+        .section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Command Cards */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .command-name {
+            font-family: 'Fira Code', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .copy-btn {
+            background: var(--code-bg);
+            border: none;
+            color: var(--text-muted);
+            padding: 0.4rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copy-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .command-desc {
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .prereqs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: auto;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            background: var(--code-bg);
+            color: var(--text-muted);
+        }
+
+        .badge.dep {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Success Message */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--success);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transform: translateY(200%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .main {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h1>Makefile 指令手冊</h1>
+        </div>
+        <nav class="nav-list" id="sidebar-nav">
+            <!-- Nav items will be injected here -->
+        </nav>
+    </aside>
+
+    <main class="main">
+        <header class="header">
+            <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">快速指令參考</h2>
+            <p style="color: var(--text-muted);">使用 Makefile 簡化開發、測試與雲端部署流程。</p>
+            
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="search" class="search-input" placeholder="搜尋指令或功能描述...">
+            </div>
+        </header>
+
+        <div id="content">
+            <!-- Sections will be injected here -->
+        </div>
+    </main>
+
+    <div id="toast" class="toast">已複製指令到剪貼簿！</div>
+
+    <script>
+        const commandsData = [
+            {
+                group: "環境建立",
+                items: [
+                    { name: "make install", desc: "建立虛擬環境並安裝核心依賴", deps: [] },
+                    { name: "make install-all", desc: "建立虛擬環境並安裝所有依賴 (含 dev, eval, gcp)", deps: [] },
+                    { name: "make sync", desc: "同步核心依賴（已有 .venv 時使用）", deps: [] },
+                    { name: "make sync-all", desc: "同步所有依賴", deps: [] },
+                    { name: "make env-check", desc: "檢查必要工具 (uv, docker) 與環境變數 (.env)", deps: [] }
+                ]
+            },
+            {
+                group: "資料庫",
+                items: [
+                    { name: "make db-init", desc: "僅啟動資料庫容器服務", deps: [] },
+                    { name: "make db-seed", desc: "執行資料庫填充 (建立測試帳號)", deps: [] },
+                    { name: "make db-ingest", desc: "執行知識庫向量化 (FAQ Ingestion)", deps: [] },
+                    { name: "make db-setup", desc: "完整資料庫初始化 (啟動 + Seed + Ingest)", deps: ["db-init", "db-seed", "db-ingest"] },
+                    { name: "make db-clean", desc: "僅清除資料庫 Volume（保留容器設定）", deps: [] },
+                    { name: "make db-reset", desc: "刪除並重建資料庫 (清空 Volume 並重新 Setup)", deps: ["db-setup"] }
+                ]
+            },
+            {
+                group: "Docker 服務",
+                items: [
+                    { name: "make up", desc: "啟動所有容器服務 (db, toolbox, backend, frontend)", deps: [] },
+                    { name: "make db-up", desc: "僅啟動資料庫與 Toolbox 服務 (db, toolbox)", deps: [] },
+                    { name: "make down", desc: "停止並移除所有容器服務", deps: [] },
+                    { name: "make logs", desc: "查看所有容器日誌", deps: [] },
+                    { name: "make toolbox-logs", desc: "查看 Toolbox 容器日誌", deps: [] }
+                ]
+            },
+            {
+                group: "執行 Agent",
+                items: [
+                    { name: "make run-web", desc: "以 ADK Web UI 啟動 Agent", deps: [] },
+                    { name: "make run-api", desc: "以 ADK API Server 啟動 Agent", deps: [] },
+                    { name: "make run-fastapi", desc: "以 FastAPI 啟動 backend", deps: [] },
+                    { name: "make debug-fastapi", desc: "啟動具有 debugpy 的 FastAPI backend", deps: [] },
+                    { name: "make run-cli", desc: "以 CLI 模式啟動 Agent", deps: [] },
+                    { name: "make ui-install", desc: "安裝 Next.js mock UI 依賴", deps: [] },
+                    { name: "make ui-dev", desc: "啟動 Next.js mock UI", deps: [] },
+                    { name: "make ui-build", desc: "建置 Next.js mock UI", deps: [] }
+                ]
+            },
+            {
+                group: "建置與推送",
+                items: [
+                    { name: "make tf-gen-config", desc: "根據環境變數動態生成 Terraform Backend 配置檔 (.tfbackend)", deps: ["env-check-gcp"] },
+                    { name: "make build-push", desc: "建置並推送 Docker 映像檔到 Artifact Registry", deps: ["env-check-gcp"] },
+                    { name: "make env-check-gcp", desc: "確保 GCP 相關部署變數已正確設定且不為空", deps: [] }
+                ]
+            },
+            {
+                group: "雲端部署 (Terraform)",
+                items: [
+                    { name: "make tf-bootstrap", desc: "部署 CI/CD Bootstrap 基礎設施 (GitHub 連線、Cloud Build Triggers)", deps: [] },
+                    { name: "make tf-bootstrap-destroy", desc: "移除 CI/CD Bootstrap 基礎設施", deps: [] },
+                    { name: "make tf-init", desc: "初始化 Terraform (含 Backend 配置)", deps: ["tf-gen-config"] },
+                    { name: "make tf-plan", desc: "預覽 Terraform 部署計畫", deps: ["tf-init"] },
+                    { name: "make tf-apply", desc: "執行 Terraform 部署", deps: ["tf-init"] },
+                    { name: "make tf-destroy", desc: "移除 Terraform 部署的所有雲端資源 (請謹慎使用)", deps: ["tf-init"] },
+                    { name: "make tf-db-password", desc: "獲取雲端資料庫密碼 (從 Terraform Output)", deps: [] },
+                    { name: "make gcp-db-proxy", desc: "啟動 Cloud SQL Auth Proxy 連線到雲端資料庫", deps: [] },
+                    { name: "make gcp-db-setup", desc: "一鍵自動初始化雲端資料庫 (啟動 Proxy + 執行 SQL + Seed)", deps: [] }
+                ]
+            },
+            {
+                group: "雲端部署 (輔助與 CI/CD)",
+                items: [
+                    { name: "make gcp-bootstrap", desc: "一鍵部署 CI/CD Bootstrap 基礎設施", deps: ["tf-bootstrap"] },
+                    { name: "make gcp-deploy", desc: "執行完整部署流程 (Build + Push + Terraform Apply)", deps: ["build-push", "tf-apply"] },
+                    { name: "make gcp-traffic-list", desc: "查看 Cloud Run 服務流量分配", deps: [] },
+                    { name: "make gcp-rollback", desc: "將流量退回到上一個穩定的修訂版本", deps: [] },
+                    { name: "make gcp-cleanup-orphans", desc: "找出所有與本專案相關的 Cloud SQL 實體 (協助清理)", deps: [] }
+                ]
+            },
+            {
+                group: "測試與評估 (Evals)",
+                items: [
+                    { name: "make check", desc: "執行單元測試", deps: [] },
+                    { name: "make test-api", desc: "執行 FastAPI API 測試", deps: [] },
+                    { name: "make eval-core", desc: "執行核心回歸測試 (Case 1-3 + Extended)", deps: [] },
+                    { name: "make eval-safety", desc: "執行所有安全性 (Safety) 測試 (Case 09-17)", deps: [] },
+                    { name: "make eval-session-aware", desc: "執行所有對話感知 (Session-aware) 測試", deps: [] },
+                    { name: "make eval-live", desc: "執行所有實時模式 (Live Mode) 測試", deps: [] },
+                    { name: "make eval-live-dynamic", desc: "執行動態 User Simulation 評估", deps: [] }
+                ]
+            },
+            {
+                group: "Agent Starter Pack (通用)",
+                items: [
+                    { name: "make playground", desc: "啟動互動式 Agent Playground (ADK Web)", deps: [] },
+                    { name: "make eval", desc: "執行指定的評估集 (預設 basic)", deps: [] },
+                    { name: "make eval-all", desc: "執行 tests/eval/evalsets/ 下的所有評估集", deps: [] },
+                    { name: "make lint", desc: "執行程式碼品質檢查 (ruff, codespell, ty)", deps: [] },
+                    { name: "make test", desc: "執行完整單元與整合測試", deps: [] },
+                    { name: "make deploy", desc: "快速部署到 Google Cloud (Agent Engine)", deps: [] }
+                ]
+            },
+            {
+                group: "清除",
+                items: [
+                    { name: "make clean", desc: "清除快取與暫存檔 (__pycache__, .pytest_cache)", deps: [] },
+                    { name: "make clean-all", desc: "完整清除（含 .venv，需重新安裝）", deps: ["clean"] }
+                ]
+            }
+        ];
+
+        const contentEl = document.getElementById('content');
+        const navEl = document.getElementById('sidebar-nav');
+        const searchInput = document.getElementById('search');
+        const toast = document.getElementById('toast');
+
+        function render() {
+            contentEl.innerHTML = '';
+            navEl.innerHTML = '';
+            
+            const searchTerm = searchInput.value.toLowerCase();
+
+            commandsData.forEach((section, sIndex) => {
+                const filteredItems = section.items.filter(item => 
+                    item.name.toLowerCase().includes(searchTerm) || 
+                    item.desc.toLowerCase().includes(searchTerm)
+                );
+
+                if (filteredItems.length === 0) return;
+
+                const sectionId = `section-${sIndex}`;
+                
+                // Add Nav Item
+                const navItem = document.createElement('li');
+                navItem.className = 'nav-item';
+                navItem.innerHTML = `<a href="#${sectionId}" class="nav-link">${section.group}</a>`;
+                navEl.appendChild(navItem);
+
+                // Add Section
+                const sectionEl = document.createElement('section');
+                sectionEl.className = 'section';
+                sectionEl.id = sectionId;
+                
+                sectionEl.innerHTML = `
+                    <h3 class="section-title">${section.group} <span class="badge" style="font-weight:400; font-size: 0.8rem;">${filteredItems.length} 個指令</span></h3>
+                    <div class="grid">
+                        ${filteredItems.map(item => `
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="command-name">${item.name}</span>
+                                    <button class="copy-btn" onclick="copyCommand('${item.name}')" title="複製指令">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                    </button>
+                                </div>
+                                <p class="command-desc">${item.desc}</p>
+                                <div class="prereqs">
+                                    ${item.deps.length > 0 ? item.deps.map(dep => `<span class="badge dep">需先執行: ${dep}</span>`).join('') : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                contentEl.appendChild(sectionEl);
+            });
+        }
+
+        window.copyCommand = (cmd) => {
+            navigator.clipboard.writeText(cmd).then(() => {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 2000);
+            });
+        };
+
+        searchInput.addEventListener('input', render);
+
+        // Initial render
+        render();
+
+        // Active link on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            let current = "";
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (window.pageYOffset >= sectionTop - 60) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href').includes(current)) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
