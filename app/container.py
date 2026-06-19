@@ -79,7 +79,7 @@ def build_app_container(config: AppRuntimeConfig | None = None) -> AppContainer:
     """
     # 1. 載入配置
     runtime_config = config or load_runtime_config()
-    
+
     # 2. 建立 Agent 工廠
     agent_factory = AgentFactory(runtime_config)
 

@@ -9,7 +9,6 @@ from __future__ import annotations
 import base64
 from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import Any
 
 from google.adk.events.event import Event
 from google.adk.runners import Runner
@@ -84,7 +83,7 @@ def stringify_state_patch(state_delta: dict[str, object]) -> dict[str, str]:
 
 def is_echoed_user_input(event: Event, prompt: str) -> bool:
     """判斷 ADK 事件是否只是使用者輸入的回顯 (echo)。
-    
+
     在 ADK 的執行流中，第一個事件通常會回傳使用者的原始輸入內容。
     為了避免在前端顯示重複的使用者訊息，此函式用於過濾這些事件。
     """
@@ -336,7 +335,7 @@ def map_adk_event_to_envelopes(event: Event, sequence: int) -> list[dict[str, ob
 
 class AgentRunService:
     """管理 Agent 執行週期的核心服務。
-    
+
     負責調用 ADK Runner 並將其產生的非同步事件流轉換為前端可讀的 SSE 封包流時。
     """
 

@@ -20,6 +20,7 @@ app/api/routes/run.py
 負責接收使用者的文字或多模態提示詞，觸發 Agent 邏輯，並透過 SSE (Server-Sent Events) 即時回傳結果。
 """
 
+
 def encode_sse_event(envelope: dict[str, object]) -> str:
     """
     將資料封裝為伺服器傳送事件 (SSE) 格式。
@@ -66,7 +67,7 @@ async def run_agent(
     """
     執行 Agent 的主要 API 端點。
     接收使用者提示詞，並以流式 (Streaming) 方式回傳回應。
-    
+
     執行流程：
     1. 驗證 JWT Token (透過 Depends(get_current_user))，確認使用者身分。
     2. 檢查請求參數與權限 (確認 userId 一致性)。

@@ -50,7 +50,7 @@ async def list_sessions(
 ):
     """
     列出特定使用者在特定應用下的所有對話會話。
-    
+
     執行流程：
     1. 驗證權限：確認操作者身份與目標 user_id 一致。
     2. 驗證應用程式名稱。
@@ -83,7 +83,7 @@ async def create_session(
 ):
     """
     為特定使用者建立新的對話會話。
-    
+
     執行流程：
     1. 驗證權限與應用名稱。
     2. 如果前端未提供 sessionId，則系統自動生成一個 UUID。
@@ -123,7 +123,7 @@ async def get_session(
 ):
     """
     獲取指定會話的詳細資訊 (包含狀態與歷史)。
-    
+
     執行流程：
     1. 驗證權限與應用名稱。
     2. 透過 SessionService 獲取格式化的 Session 資料。
@@ -156,7 +156,7 @@ async def delete_session(
 ):
     """
     刪除指定的對話會話。
-    
+
     執行流程：
     1. 驗證權限與應用名稱。
     2. 驗證 sessionId 是否有效。

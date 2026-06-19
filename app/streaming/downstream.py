@@ -18,11 +18,11 @@ logger = logging.getLogger("app.streaming.downstream")
 
 # 不可恢復的終端錯誤類型，遇到這些錯誤時應立即中斷連線並通知前端
 TERMINAL_ERROR_CODES = {
-    "SAFETY",               # 觸發安全守門員機制 (如色情、暴力)
-    "PROHIBITED_CONTENT",   # 觸發被禁止的內容政策
-    "BLOCKLIST",            # 觸發黑名單字詞
-    "MAX_TOKENS",           # 達到對話歷史長度或輸出 Token 的硬限制
-    "RESOURCE_EXHAUSTED",   # API 配額耗盡 (例如併發連線數過多)
+    "SAFETY",  # 觸發安全守門員機制 (如色情、暴力)
+    "PROHIBITED_CONTENT",  # 觸發被禁止的內容政策
+    "BLOCKLIST",  # 觸發黑名單字詞
+    "MAX_TOKENS",  # 達到對話歷史長度或輸出 Token 的硬限制
+    "RESOURCE_EXHAUSTED",  # API 配額耗盡 (例如併發連線數過多)
 }
 
 
@@ -119,7 +119,7 @@ async def downstream_task(
 
         logger.error(f"Downstream task 發生錯誤: {e}")
         error_code = "INTERNAL_ERROR"
-        
+
         # 針對特定常見的例外提供更友善的錯誤訊息
         if "RESOURCE_EXHAUSTED" in error_msg:
             error_code = "RESOURCE_EXHAUSTED"

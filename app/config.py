@@ -63,26 +63,26 @@ class AppRuntimeConfig:
     fastapi_port: int  # FastAPI 伺服器綁定埠號
     fastapi_reload: bool  # 是否啟用 FastAPI 熱重載 (Uvicorn reload)
     cors_allow_origins: tuple[str, ...]  # CORS 允許的來源網域列表
-    
+
     # 審計日誌 (Audit Log) 相關配置
     audit_enabled: bool
     audit_db_path: str
     audit_retention_days: int
     audit_hash_salt: str
-    pii_redaction_enabled: bool # 是否啟用 PII 遮蔽
-    
-    max_output_tokens: int # LLM 最大輸出 Token 數
-    
+    pii_redaction_enabled: bool  # 是否啟用 PII 遮蔽
+
+    max_output_tokens: int  # LLM 最大輸出 Token 數
+
     # GCP 可觀測性 (Telemetry) 配置
     enable_cloud_tracing: bool
     enable_cloud_logging: bool
     otel_service_name: str
-    
+
     # JWT 認證配置
     jwt_secret: str
     jwt_algorithm: str
     access_token_expire_minutes: int
-    
+
     # BigQuery 分析配置
     bigquery_analytics_dataset: str | None
     bigquery_location: str

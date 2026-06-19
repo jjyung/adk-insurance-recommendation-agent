@@ -88,3 +88,6 @@ dev = [
     "testcontainers[postgres]>=4.9.0",
     "ty>=0.0.39",
 ]
+
+[tool.codespell]
+ignore-words-list = "als"

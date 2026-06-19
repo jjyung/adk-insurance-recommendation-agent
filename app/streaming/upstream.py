@@ -27,7 +27,7 @@ def _wrap_error_message(message: str) -> str:
 def _resize_image_if_needed(image_bytes: bytes, max_size: int = 1024) -> bytes:
     """
     將使用者上傳的圖片調整為適合 Gemini Live API 的大小與格式。
-    
+
     考量點：
     1. Gemini 模型對於過大的圖片可能會處理緩慢或出現維度錯誤。
     2. 建議解析度限制在最大邊不超過 1024 像素。
@@ -182,7 +182,7 @@ async def upstream_task(
                 logger.info("WebSocket upstream 任務正常結束。")
             else:
                 logger.error(f"Upstream task 發生非預期錯誤: {e}")
-            
+
             # 確保佇列被關閉，避免資源洩漏
             live_request_queue.close()
             break

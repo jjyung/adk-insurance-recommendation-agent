@@ -99,7 +99,7 @@ def to_session_list_item(session: Session) -> dict[str, Any]:
 class SessionService:
     """
     提供 Session 相關操作的核心服務類別。
-    
+
     封裝了底層的 BaseSessionService，提供更高階的應用程式級別操作。
     """
 

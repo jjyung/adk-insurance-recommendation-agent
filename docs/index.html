@@ -486,7 +486,7 @@
       line-height: 1.5;
       color: var(--color-text-secondary);
     }
-    
+
     /* Elegant Details styling */
     .tech-accordion {
       margin: 16px 0;
@@ -540,6 +540,177 @@
       font-size: 0.95rem;
       line-height: 1.7;
       background: var(--color-surface);
+    }
+
+    /* =====================
+       Mermaid Zoom & Restore
+       ===================== */
+    .mermaid-container {
+      position: relative;
+      margin: 24px 0;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface);
+      padding: 48px 24px 24px; /* extra top padding for the control bar */
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .mermaid-container:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.08);
+    }
+    .mermaid-container .mermaid {
+      overflow-x: auto;
+      text-align: center;
+    }
+    .mermaid-control-bar {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+    }
+    .mermaid-btn {
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-primary);
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      user-select: none;
+    }
+    .mermaid-btn:hover {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+
+    /* Modal Overlay */
+    .mermaid-modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(32, 33, 36, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .mermaid-modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .mermaid-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text);
+      user-select: none;
+    }
+    .mermaid-modal-title {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mermaid-modal-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mermaid-modal-btn {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      color: var(--color-text-secondary);
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .mermaid-modal-btn:hover {
+      background: var(--color-bg);
+      color: var(--color-text);
+      border-color: var(--color-text-secondary);
+    }
+    .mermaid-modal-btn.primary-btn {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+    .mermaid-modal-btn.primary-btn:hover {
+      background: var(--color-primary-dark);
+      border-color: var(--color-primary-dark);
+    }
+    .mermaid-modal-btn.close-btn {
+      background: var(--color-important);
+      border-color: var(--color-important-border);
+      color: #7c2b29;
+    }
+    .mermaid-modal-btn.close-btn:hover {
+      background: #d93025;
+      border-color: #d93025;
+      color: #fff;
+    }
+    .mermaid-modal-zoom-indicator {
+      color: var(--color-text-secondary);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      min-width: 48px;
+      text-align: center;
+      font-weight: 500;
+    }
+    .mermaid-modal-body {
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 40px;
+      cursor: grab;
+      background: var(--color-bg);
+    }
+    .mermaid-modal-body:active {
+      cursor: grabbing;
+    }
+    .mermaid-modal-svg-container {
+      display: inline-block;
+      margin: auto;
+      background: #ffffff;
+      padding: 32px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--color-border);
+      transition: transform 0.15s ease-out;
+      transform-origin: center center;
+    }
+    .mermaid-modal-svg-container svg {
+      max-width: none !important;
+      max-height: none !important;
+      display: block;
+      pointer-events: none;
     }
 
     /* =====================
@@ -626,7 +797,7 @@
           <span class="codelab-step__num">1</span>
           <h2 class="codelab-step__title">系統全景圖 (System Architecture)</h2>
         </div>
-        <p>👋 各位準 AI 工程師們，大家好！我是你們的技術架構導師。</p>
+        <p>👋 大家好！我是你們的技術架構導師。</p>
         <p>今天，我們將一起深入探索這套<strong>保險推薦 Agent 系統</strong>。這不只是一個單純的聊天機器人，它結合了 <strong>Gemini Multimodal Live API</strong>、<strong>RAG (檢索增強生成)</strong>、以及<strong>分散式追蹤與安全性稽核</strong>等企業級技術。</p>
         <p>在動手寫程式前，我們先看懂「地圖」。下圖展示了請求如何從前端 Next.js 流向後端 FastAPI，並與 Google ADK (Agent Developer Kit) 及 GCP 服務互動。</p>
         <div class="codelab-img-wrapper">
@@ -721,6 +892,75 @@ make ui-dev       # 啟動 Next.js 網頁 (Port 3000)</code></pre>
             <p>執行 <code>make playground</code> 啟動 ADK 內建的 Web 互動沙盒，用最直覺的 GUI 即時驗證 Agent 的工具呼叫、Prompt 約束以及模型生成結果。</p>
           </li>
         </ol>
+
+        <h3>E. 容器化一鍵啟動與完整堆疊託管 (Docker Compose Workflow)</h3>
+        <p>除了在主機上分別透過 <code>uv run</code> 與 <code>npm run</code> 啟動服務外，本專案也支援全容器化的<strong>一鍵本地部署</strong>。透過 Docker Compose，你可以快速在背景拉起完整的微服務堆疊，極適合 PoC 快速演示與預備測試環境。</p>
+
+        <h4>1. 核心容器化命令</h4>
+        <p>專案 Makefile 中已封裝以下常用的容器生命週期管理指令：</p>
+        <ul>
+          <li><strong>啟動全站服務 (make up)</strong>：
+            <pre><code class="language-bash">make up # 在背景啟動資料庫、Toolbox、後端 API 與前端 UI</code></pre>
+            此命令對應執行 <code>docker compose up -d</code>，會自動下載所需基礎映像檔，並在背景運行所有容器。
+          </li>
+          <li><strong>強制重建並啟動 (make up-build)</strong>：
+            <pre><code class="language-bash">make up-build # 重建 Backend 與 Frontend 映像檔並重新啟動</code></pre>
+            當你修改了 Dockerfile、套件依賴或靜態設定，需要重新打包映像檔時使用。
+          </li>
+          <li><strong>僅啟動基礎相依服務 (make db-up)</strong>：
+            <pre><code class="language-bash">make db-up # 僅在背景啟動 Postgres 與 Toolbox 容器</code></pre>
+            <strong>最推薦的開發模式：</strong>在主機上進行後端 (FastAPI) 與前端 (Next.js) 的開發與熱重載 (Hot-Reloading)，但讓資料庫與外部 MCP 工具包在 Docker 容器內運行。
+          </li>
+          <li><strong>完整關閉與清理 (make down)</strong>：
+            <pre><code class="language-bash">make down # 停止並移除所有本地容器與對應網路資源</code></pre>
+          </li>
+        </ul>
+
+        <h4>2. Docker Compose 服務清單與埠號對照</h4>
+        <p>在執行 <code>make up</code> 後，系統會拉起以下 4 個主要容器，彼此在自定義的橋接網路中通信：</p>
+        <table class="codelab-table">
+          <thead>
+            <tr>
+              <th>服務名稱 (Service)</th>
+              <th>容器名稱 (Container)</th>
+              <th>對外埠號 (Port)</th>
+              <th>說明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>db</code></td>
+              <td><code>insurance-db</code></td>
+              <td><code>5432</code></td>
+              <td>具備 <code>pgvector</code> 支援的 PostgreSQL 16 資料庫，儲存會話、用戶畫像與 RAG 向量知識庫。</td>
+            </tr>
+            <tr>
+              <td><code>toolbox</code></td>
+              <td><code>insurance-toolbox</code></td>
+              <td>-</td>
+              <td>Google ADK 專用 MCP (Model Context Protocol) 服務，作為 Agent 存取外部產品搜尋工具的網關。</td>
+            </tr>
+            <tr>
+              <td><code>backend</code></td>
+              <td><code>insurance-backend</code></td>
+              <td><code>8080</code></td>
+              <td>FastAPI 非同步後端 API，負責 JWT 驗證、PII 遮蔽、審計日誌寫入，以及 WebSocket/SSE 串流轉譯。</td>
+            </tr>
+            <tr>
+              <td><code>frontend</code></td>
+              <td><code>insurance-frontend</code></td>
+              <td><code>3000</code></td>
+              <td>Next.js 15 Web 介面，提供極致流暢的多模態雙向串流、語音音訊波形視覺化與 Agent 決策軌跡面板。</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout callout-tip">
+          <strong>DOCKER CODELAB TIP:</strong>
+          <p>若你在容器化運行中需要查看後端或前端的即時排錯日誌，可以使用以下 Docker 原生命令進行動態追蹤：</p>
+          <pre style="margin-top: 8px; margin-bottom: 0; padding: 10px 16px;"><code class="language-bash">docker logs -f insurance-backend  # 即時查看後端 FastAPI 運行日誌
+docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</code></pre>
+        </div>
 
         <div class="callout callout-tip">
           <strong>TIP:</strong>
@@ -869,14 +1109,14 @@ make ui-dev       # 啟動 Next.js 網頁 (Port 3000)</code></pre>
                 Route->>RunSrv: ensure_session(session_id, sessionState)
                 RunSrv->>Session: ensure_session() (DB 冪等建立/載入)
                 Route->>Route: 返回 StreamingResponse (SSE Generator)
-                
+
                 rect rgb(240, 248, 255)
                     note over Route, Runner: SSE 串流迴圈啟動
                     RunSrv->>Audit: record("user.prompt.received") (PII 已遮蔽)
                     RunSrv->>Client: data: { "type": "meta", ... }
                     RunSrv->>Runner: run_async(user_id, session_id, message)
                     Runner->>Session: 載入對話歷史 (History Context)
-                    
+
                     loop ADK 內部推理與工具鏈 (Reasoning Loop)
                         Runner->>Agent: 提供 Instruction, Context 與當前狀態
                         Agent->>Agent: 意圖分類與工具決策
@@ -1069,7 +1309,7 @@ make ui-dev       # 啟動 Next.js 網頁 (Port 3000)</code></pre>
         Gemini 2.5/Live 模型在直接接收大圖 PCM 時可能會引發 <code>1007 Dimension Mismatch</code> 或是極高延遲。在 `upstream.py` 中，手動使用 PIL (LANCZOS 演算法) 限制寬度在 1024 像素內，轉 RGB 剔除 PNG 帶有的 Alpha 通道，並強壓成 JPEG。這不僅保障了百分之百的通訊穩定，還將帶寬消耗縮減了 75% 以上！
       </li>
       <li><strong>全雙工併發中斷如何防止 gRPC 套接字洩漏？</strong><br/>
-        當用戶忽然點擊關閉，或者是麥克風網絡套接字異常斷線，若後端仍在對 Live API 進行阻塞讀寫（Downstream task 阻塞在 <code>runner.run_live</code> 迭代中），會造成<b>懸空孤兒協程 (Orphaned Coroutine)</b>。使用 <code>asyncio.wait(..., return_when=FIRST_EXCEPTION)</code> 能確保一旦其中一端發生斷線（拋出 WebDisconnect），另一端會立刻被拋出 Cancel 訊號，並在 <code>finally</code> 中確實呼叫 <code>live_request_queue.close()</code> 銷毀所有協程緩衝區與網絡資源！
+        當用戶忽然點擊關閉，或者是麥克風網絡套接字異常斷線，若後端仍在對 Live API 進行阻塞讀寫（Downstream task 阻塞在 <code>runner.run_live</code> 迭代中），會造成<b>孤兒協程 (Orphaned Coroutine)</b>。使用 <code>asyncio.wait(..., return_when=FIRST_EXCEPTION)</code> 能確保一旦其中一端發生斷線（拋出 WebDisconnect），另一端會立刻被拋出 Cancel 訊號，並在 <code>finally</code> 中確實呼叫 <code>live_request_queue.close()</code> 銷毀所有協程緩衝區與網絡資源！
       </li>
     </ul>
   </div>
@@ -1537,6 +1777,291 @@ make tf-apply</code></pre>
       }, { rootMargin: '-20% 0px -60% 0px', threshold: 0 });
 
       sections.forEach(sec => observer.observe(sec));
+
+      // ==========================================
+      // Mermaid Zoom & Restore Interactive System
+      // ==========================================
+
+      // 1. Create and Append Modal Markup dynamically to body
+      const modalOverlay = document.createElement('div');
+      modalOverlay.id = 'mermaidModal';
+      modalOverlay.className = 'mermaid-modal-overlay';
+      modalOverlay.innerHTML = `
+        <div class="mermaid-modal-header">
+          <div class="mermaid-modal-title">📊 流程圖放大檢視</div>
+          <div class="mermaid-modal-controls">
+            <button class="mermaid-modal-btn primary-btn" id="modalZoomIn">➕ 放大</button>
+            <button class="mermaid-modal-btn primary-btn" id="modalZoomOut">➖ 縮小</button>
+            <button class="mermaid-modal-btn" id="modalZoomReset">🔄 復原</button>
+            <span class="mermaid-modal-zoom-indicator" id="modalZoomIndicator">100%</span>
+            <button class="mermaid-modal-btn close-btn" id="modalClose">❌ 關閉</button>
+          </div>
+        </div>
+        <div class="mermaid-modal-body" id="modalBody">
+          <div class="mermaid-modal-svg-container" id="modalSvgContainer"></div>
+        </div>
+      `;
+      document.body.appendChild(modalOverlay);
+
+      // 2. Wrap all mermaid divs inside .mermaid-container & inject floating control bar
+      const mermaidElements = document.querySelectorAll('div.mermaid');
+      mermaidElements.forEach((div, index) => {
+        // Create container wrapper
+        const container = document.createElement('div');
+        container.className = 'mermaid-container';
+
+        // Insert container before the original div, and move div into it
+        div.parentNode.insertBefore(container, div);
+        container.appendChild(div);
+
+        // Make diagram itself clickable to zoom
+        div.style.cursor = 'zoom-in';
+        div.addEventListener('click', () => {
+          openMermaidModal(div);
+        });
+
+        // Inject Control Bar with zoom trigger
+        const controlBar = document.createElement('div');
+        controlBar.className = 'mermaid-control-bar';
+
+        const zoomBtn = document.createElement('button');
+        zoomBtn.className = 'mermaid-btn';
+        zoomBtn.innerHTML = '🔍 點擊放大';
+        zoomBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent duplicate click events
+          openMermaidModal(div);
+        });
+
+        controlBar.appendChild(zoomBtn);
+        container.appendChild(controlBar);
+      });
+
+      // 3. Modal Zoom & Pan States
+      let currentZoom = 1.0;
+      const modal = document.getElementById('mermaidModal');
+      const svgContainer = document.getElementById('modalSvgContainer');
+      const modalBody = document.getElementById('modalBody');
+      const zoomIndicator = document.getElementById('modalZoomIndicator');
+
+      // Helper to find nearest heading for diagram title
+      function findDiagramTitle(element) {
+        let prev = element.previousElementSibling;
+        while (prev) {
+          if (prev.tagName.match(/^H[1-6]$/)) {
+            return prev.innerText.trim();
+          }
+          if (prev.classList && prev.classList.contains('mermaid-container')) {
+            break;
+          }
+          prev = prev.previousElementSibling;
+        }
+        // Fallback to section header
+        const stepSec = element.closest('.codelab-step');
+        if (stepSec) {
+          const stepTitle = stepSec.querySelector('.codelab-step__title');
+          if (stepTitle) {
+            return `流程圖 - ${stepTitle.innerText.trim()}`;
+          }
+        }
+        return "流程圖";
+      }
+
+      // Update zoom transform and label
+      function updateZoomUI() {
+        svgContainer.style.transform = `scale(${currentZoom})`;
+        zoomIndicator.textContent = `${Math.round(currentZoom * 100)}%`;
+      }
+
+      // Open Modal
+      function openMermaidModal(mermaidDiv) {
+        const originalSvg = mermaidDiv.querySelector('svg');
+        if (!originalSvg) {
+          // If mermaid hasn't loaded yet, try after a brief delay
+          setTimeout(() => openMermaidModal(mermaidDiv), 100);
+          return;
+        }
+
+        const derivedTitle = findDiagramTitle(mermaidDiv.closest('.mermaid-container') || mermaidDiv);
+        modal.querySelector('.mermaid-modal-title').innerHTML = `📊 流程圖：${derivedTitle}`;
+
+        // Clear and clone SVG
+        svgContainer.innerHTML = '';
+        const clonedSvg = originalSvg.cloneNode(true);
+
+        // Parse viewBox or compute dimensions to prevent collapsing to 0x0
+        let naturalWidth = 800;
+        let naturalHeight = 600;
+        const viewBox = originalSvg.getAttribute('viewBox');
+        if (viewBox) {
+          const parts = viewBox.split(/\s+/);
+          if (parts.length === 4) {
+            naturalWidth = parseFloat(parts[2]);
+            naturalHeight = parseFloat(parts[3]);
+          }
+        } else {
+          const rect = originalSvg.getBoundingClientRect();
+          naturalWidth = rect.width || 800;
+          naturalHeight = rect.height || 600;
+        }
+
+        clonedSvg.style.width = naturalWidth + 'px';
+        clonedSvg.style.height = naturalHeight + 'px';
+        clonedSvg.removeAttribute('width');
+        clonedSvg.removeAttribute('height');
+        svgContainer.appendChild(clonedSvg);
+
+        // Calculate initial zoom to comfortably fit inside viewport with margin/padding
+        const viewportWidth = modalBody.clientWidth - 80;
+        const viewportHeight = modalBody.clientHeight - 80;
+        const widthRatio = viewportWidth / (naturalWidth + 64); // including padding inside the canvas card
+        const heightRatio = viewportHeight / (naturalHeight + 64);
+
+        // Fit completely on screen, cap initial scale at 1.0 to prevent pixelation of small diagrams
+        currentZoom = Math.min(widthRatio, heightRatio, 1.0);
+        if (currentZoom < 0.2) currentZoom = 0.2; // Absolute minimum floor scale
+
+        updateZoomUI();
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Auto center scroll position
+        setTimeout(() => {
+          modalBody.scrollLeft = (modalBody.scrollWidth - modalBody.clientWidth) / 2;
+          modalBody.scrollTop = (modalBody.scrollHeight - modalBody.clientHeight) / 2;
+        }, 50);
+      }
+
+      // Close Modal
+      function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+
+      // Button event listeners
+      document.getElementById('modalZoomIn').addEventListener('click', () => {
+        if (currentZoom < 3.0) {
+          currentZoom += 0.2;
+          updateZoomUI();
+        }
+      });
+
+      document.getElementById('modalZoomOut').addEventListener('click', () => {
+        if (currentZoom > 0.4) {
+          currentZoom -= 0.2;
+          updateZoomUI();
+        }
+      });
+
+      document.getElementById('modalZoomReset').addEventListener('click', () => {
+        const originalSvg = svgContainer.querySelector('svg');
+        if (originalSvg) {
+          let naturalWidth = 800;
+          let naturalHeight = 600;
+          const viewBox = originalSvg.getAttribute('viewBox');
+          if (viewBox) {
+            const parts = viewBox.split(/\s+/);
+            if (parts.length === 4) {
+              naturalWidth = parseFloat(parts[2]);
+              naturalHeight = parseFloat(parts[3]);
+            }
+          } else {
+            const rect = originalSvg.getBoundingClientRect();
+            naturalWidth = rect.width || 800;
+            naturalHeight = rect.height || 600;
+          }
+
+          const viewportWidth = modalBody.clientWidth - 80;
+          const viewportHeight = modalBody.clientHeight - 80;
+          const widthRatio = viewportWidth / (naturalWidth + 64);
+          const heightRatio = viewportHeight / (naturalHeight + 64);
+
+          currentZoom = Math.min(widthRatio, heightRatio, 1.0);
+          if (currentZoom < 0.2) currentZoom = 0.2;
+        } else {
+          currentZoom = 1.0;
+        }
+
+        updateZoomUI();
+        // Recenter scroll
+        modalBody.scrollLeft = (modalBody.scrollWidth - modalBody.clientWidth) / 2;
+        modalBody.scrollTop = (modalBody.scrollHeight - modalBody.clientHeight) / 2;
+      });
+
+      document.getElementById('modalClose').addEventListener('click', closeModal);
+
+      // Close modal on backdrop click
+      modalBody.addEventListener('click', (e) => {
+        if (e.target === modalBody) {
+          closeModal();
+        }
+      });
+
+      // Close modal on ESC key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          closeModal();
+        }
+      });
+
+      // 4. Mouse Drag/Pan Panning logic
+      let isDragging = false;
+      let startX, startY, scrollLeft, scrollTop;
+
+      modalBody.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return; // Only left-click
+        if (e.target.closest('.mermaid-modal-btn') || e.target.closest('.mermaid-modal-zoom-indicator')) return;
+
+        isDragging = true;
+        modalBody.style.cursor = 'grabbing';
+        startX = e.pageX - modalBody.offsetLeft;
+        startY = e.pageY - modalBody.offsetTop;
+        scrollLeft = modalBody.scrollLeft;
+        scrollTop = modalBody.scrollTop;
+      });
+
+      modalBody.addEventListener('mouseleave', () => {
+        if (isDragging) {
+          isDragging = false;
+          modalBody.style.cursor = 'grab';
+        }
+      });
+
+      modalBody.addEventListener('mouseup', () => {
+        if (isDragging) {
+          isDragging = false;
+          modalBody.style.cursor = 'grab';
+        }
+      });
+
+      modalBody.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - modalBody.offsetLeft;
+        const y = e.pageY - modalBody.offsetTop;
+        const walkX = (x - startX) * 1.5;
+        const walkY = (y - startY) * 1.5;
+        modalBody.scrollLeft = scrollLeft - walkX;
+        modalBody.scrollTop = scrollTop - walkY;
+      });
+
+      // 5. Ctrl + Mouse Wheel Zoom logic
+      modalBody.addEventListener('wheel', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          if (e.deltaY < 0) {
+            if (currentZoom < 3.0) {
+              currentZoom += 0.1;
+              updateZoomUI();
+            }
+          } else {
+            if (currentZoom > 0.4) {
+              currentZoom -= 0.1;
+              updateZoomUI();
+            }
+          }
+        }
+      }, { passive: false });
       });
       </script>
       </body>

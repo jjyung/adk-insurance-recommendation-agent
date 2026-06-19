@@ -31,7 +31,7 @@ async def websocket_live_endpoint(
     """
     ADK Gemini Live API Toolkit WebSocket 端點。
     支援音訊、影像、視訊與文字的全雙工串流。
-    
+
     執行流程：
     1. 接收 WebSocket 升級請求。
     2. 由於 WebSocket 無法輕易攜帶 Authorization Header，故手動從 Query Parameter 解析 Token 並進行 JWT 驗證。
@@ -52,12 +52,12 @@ async def websocket_live_endpoint(
             # Token 無效，拒絕連線並回傳 1008 Policy Violation 狀態碼
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
-            
+
         username = payload.get("sub")
         if not isinstance(username, str):
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
-            
+
         # 查詢資料庫確認使用者狀態
         current_user = await container.users.get_user_by_username(username)
         if not current_user:
@@ -78,7 +78,7 @@ async def websocket_live_endpoint(
         f"user_id={user_id or container.config.api_user_id}, "
         f"proactivity={proactivity}, affective_dialog={affective_dialog}"
     )
-    
+
     # 驗證通過，正式建立 WebSocket 連線
     await websocket.accept()
 

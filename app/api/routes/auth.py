@@ -30,7 +30,7 @@ async def login_for_access_token(
 ):
     """
     登入並獲取 JWT 權杖 (Access Token)。
-    
+
     執行流程：
     1. 接收來自客戶端的 OAuth2 表單資料 (包含 username 與 password)。
     2. 從資料庫中查詢該使用者。
@@ -39,7 +39,7 @@ async def login_for_access_token(
     """
     # 透過 UserService 查詢使用者
     user = await container.users.get_user_by_username(form_data.username)
-    
+
     # 驗證使用者是否存在且密碼正確
     if not user or not verify_password(form_data.password, user.hashed_password):
         # 驗證失敗時拋出 401 Unauthorized 錯誤
@@ -53,7 +53,7 @@ async def login_for_access_token(
     access_token_expires = timedelta(
         minutes=container.config.access_token_expire_minutes
     )
-    
+
     # 簽發 JWT，將使用者名稱存入 subject (sub) 欄位
     access_token = create_access_token(
         data={"sub": user.username},

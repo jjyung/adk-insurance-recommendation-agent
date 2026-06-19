@@ -84,7 +84,7 @@ class LiveAgentService:
     ) -> None:
         """
         執行並管理一個完整的 WebSocket 雙向串流會話。
-        
+
         執行流程：
         1. 準備設定檔與建立溝通佇列。
         2. 確保 Session 在資料庫中存在。
@@ -95,7 +95,7 @@ class LiveAgentService:
         run_config = self.create_run_config(
             proactivity=proactivity, affective_dialog=affective_dialog
         )
-        
+
         # 建立即時請求佇列，作為 WebSocket 與 ADK Runner 之間的緩衝區
         live_request_queue = LiveRequestQueue()
 
@@ -109,7 +109,7 @@ class LiveAgentService:
         try:
             # 建立上游任務：負責接收 WebSocket 訊息並塞入 live_request_queue
             upstream = asyncio.create_task(upstream_task(websocket, live_request_queue))
-            
+
             # 建立下游任務：負責讀取 ADK Runner 回應並透過 WebSocket 發送
             downstream = asyncio.create_task(
                 downstream_task(
@@ -123,7 +123,7 @@ class LiveAgentService:
             )
 
             try:
-                # 監控兩個任務，使用 return_when=asyncio.FIRST_EXCEPTION 
+                # 監控兩個任務，使用 return_when=asyncio.FIRST_EXCEPTION
                 # 確保任一任務失敗時能立即做出反應
                 done, pending = await asyncio.wait(
                     [upstream, downstream], return_when=asyncio.FIRST_EXCEPTION

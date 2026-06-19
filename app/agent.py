@@ -6,6 +6,7 @@ from typing import Any
 from google.adk.agents import Agent
 from google.adk.apps import App
 from google.adk.tools.toolbox_toolset import ToolboxToolset
+from google.adk.plugins.base_plugin import BasePlugin
 from google.adk.plugins.bigquery_agent_analytics_plugin import (
     BigQueryAgentAnalyticsPlugin,
 )
@@ -97,7 +98,7 @@ runtime_config = load_runtime_config()
 root_agent = create_agent(runtime_config)
 
 # 初始化外掛清單
-plugins = []
+plugins: list[BasePlugin] = []
 
 # 如果有配置 BigQuery Analytics，則初始化外掛
 if runtime_config.bigquery_analytics_dataset and runtime_config.google_cloud_project:
