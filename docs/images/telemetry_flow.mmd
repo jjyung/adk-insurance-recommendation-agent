@@ -1,0 +1,10 @@
+flowchart TD
+    App[FastAPI Application] -->|1. OTEL Metadata NO_CONTENT| LogBucket[Cloud Logging Bucket]
+    App -->|2. Upload JSONL Payload| GCS[GCS Logs Data Bucket]
+    
+    subgraph BigQuery Analysis Area
+        BQ_Log[BigQuery Linked Dataset] <--> LogBucket
+        BQ_Ext[BQ External Table] <-->|Real-time Query| GCS
+        BQ_View[BigQuery completions_view] -->|Merge Join messages_ref_uri| BQ_Log
+        BQ_View --> BQ_Ext
+    end

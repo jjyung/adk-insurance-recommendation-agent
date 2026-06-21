@@ -28,9 +28,13 @@ module "agent_infrastructure" {
   enable_telemetry     = var.enable_telemetry
   enable_audit_log     = var.enable_audit_log
   enable_pii_redaction = var.enable_pii_redaction
+  app_sa_roles         = var.app_sa_roles
+  bq_analytics_dataset = var.bq_analytics_dataset
+  bq_location          = var.bq_location
 
   # Staging specific overrides
   db_tier                = "db-f1-micro"
   db_deletion_protection = false
 
 }
+

@@ -1,0 +1,48 @@
+sequenceDiagram
+    autonumber
+    actor Client as 前端瀏覽器 (UI)
+    participant Route as api/routes/run.py
+    participant RunSrv as services/agent_run_service.py
+    participant Runner as ADK Runner (Engine)
+    participant Agent as app/agent.py (Gemini 2.5)
+    participant Session as services/session_service.py
+    participant Audit as services/audit_log_service.py
+
+    Client->>Route: POST /api/agent/run (sessionId, prompt, sessionState)
+    Route->>Route: Depends(get_current_user) 驗證 JWT & 比對權限
+    Route->>Route: 生成 trace_id & 封裝 AuditContext
+    Route->>RunSrv: ensure_session(session_id, sessionState)
+    RunSrv->>Session: ensure_session() (DB 冪等建立/載入)
+    Route->>Route: 返回 StreamingResponse (SSE Generator)
+
+    rect rgb(240, 248, 255)
+        note over Route, Runner: SSE 串流迴圈啟動
+        RunSrv->>Audit: record("user.prompt.received") (PII 已遮蔽)
+        RunSrv->>Client: data: { "type": "meta", ... }
+        RunSrv->>Runner: run_async(user_id, session_id, message)
+        Runner->>Session: 載入對話歷史 (History Context)
+
+        loop ADK 內部推理與工具鏈 (Reasoning Loop)
+            Runner->>Agent: 提供 Instruction, Context 與當前狀態
+            Agent->>Agent: 意圖分類與工具決策
+            alt 觸發工具呼叫 (Tool Use)
+                Agent->>Runner: 拋出 Tool Call
+                Runner->>RunSrv: 拋出 Event (function_call)
+                RunSrv->>Audit: record("agent.tool_call") (敏感欄位去識別)
+                RunSrv->>Client: data: { "type": "timeline", "event": { "kind": "tool-call", ... } }
+            end
+        end
+
+        Runner->>Agent: 串流文字輸出 (Generation)
+        loop Token 生成
+            Runner->>RunSrv: 拋出 Event (partial=True, text)
+            RunSrv->>Client: data: { "type": "message", "text": "...", "mode": "append" }
+        end
+
+        Runner->>Runner: 執行完成 (Stream Finished)
+        Runner->>RunSrv: 拋出最終 Event (partial=False)
+    end
+
+    RunSrv->>Session: get_state() 讀取資料庫同步後之最終 State
+    RunSrv->>Audit: record("response.completed")
+    RunSrv->>Client: data: { "type": "done", "finalText": "...", "state": {...} }

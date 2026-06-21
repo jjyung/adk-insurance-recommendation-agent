@@ -151,6 +151,14 @@ resource "google_cloud_run_v2_service" "backend" {
         name  = "OTEL_SERVICE_NAME"
         value = "${var.project_name}-backend-${var.environment}"
       }
+      env {
+        name  = "BQ_ANALYTICS_DATASET"
+        value = var.bq_analytics_dataset
+      }
+      env {
+        name  = "BQ_LOCATION"
+        value = var.bq_location
+      }
 
       env {
         name  = "GOOGLE_GENAI_USE_VERTEXAI"

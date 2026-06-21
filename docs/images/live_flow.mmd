@@ -1,0 +1,79 @@
+sequenceDiagram
+    autonumber
+    actor Client as Client (前端瀏覽器)
+    participant EP as live.py<br/>(FastAPI Endpoint)
+    participant LS as LiveAgentService
+    participant UT as upstream_task<br/>(Upstream Task)
+    participant DT as downstream_task<br/>(Downstream Task)
+    participant LQ as LiveRequestQueue
+    participant Runner as ADK Runner<br/>(Gemini Live API)
+
+    %% 階段 1: 建立連線與認證
+    Client->>EP: WebSocket 升級請求 (Query 攜帶 token, session_id)
+    activate EP
+    EP->>EP: decode_access_token() 驗證 JWT 權限與帳號狀態
+    alt Token 驗證失敗
+        EP-->>Client: 關閉連線並回應 WS 1008 Policy Violation
+    else Token 驗證通過
+        EP-->>Client: websocket.accept() (接受連線並升級)
+    end
+    EP->>EP: 將功能開關 (proactivity/affective) 寫入 Session State
+
+    %% 階段 2: 初始化會話
+    EP->>LS: execute_live_session()
+    deactivate EP
+    activate LS
+    LS->>LS: create_run_config() (配置 response_modalities=["AUDIO"], zh-TW, Puck)
+    LS->>LQ: 建立並行 safe LiveRequestQueue()
+    LS->>LS: ensure_session() (在資料庫中確保會話存在)
+
+    %% 階段 3: 並行調度上游與下游任務
+    rect rgb(240, 248, 255)
+        note right of LS: asyncio.wait(Upstream, Downstream, return_when=FIRST_EXCEPTION)
+        LS->>UT: asyncio.create_task(upstream_task)
+        activate UT
+        LS->>DT: asyncio.create_task(downstream_task)
+        activate DT
+    end
+    deactivate LS
+
+    %% 階段 4: 上游傳輸流
+    loop 雙向互動 (上游處理)
+        Client->>UT: 傳送音訊 PCM Bytes / 圖片 / 文字 / 視訊幀
+        alt 是 raw PCM 音訊 bytes
+            UT->>LQ: send_realtime(audio_blob)
+        else 是 文字 text JSON
+            UT->>LQ: send_content(content)
+        else 是 圖片 image JSON
+            UT->>UT: _resize_image_if_needed() (轉 JPEG & 限制寬 1024px)
+            UT->>LQ: send_realtime(image_blob)
+            UT->>LQ: send_content(prompt)
+        else 是 視訊影格 video_frame JSON
+            UT->>LQ: send_realtime(frame_blob)
+        end
+        LQ-->>Runner: 寫入 API 緩衝區推送到 Gemini
+    end
+
+    %% 階段 5: 下游傳輸流
+    DT->>Runner: 呼叫 runner.run_live(live_request_queue, run_config)
+    loop 雙向互動 (下游處理)
+        Runner-->>DT: 迭代即時 Event (音訊 PCM 區塊, 轉錄文字, 工具呼叫)
+        DT->>DT: 後端記錄轉錄內容 (Debug logs)
+        alt 檢測到嚴重錯誤 (SAFETY, RESOURCE_EXHAUSTED, etc)
+            DT->>Client: 發送 Wrapped Error Message JSON
+            DT->>DT: 主動中斷下游並跳出迴圈
+        else 正常事件
+            DT->>Client: event_json (剔除空欄位之序列化資料)
+        end
+    end
+
+    %% 階段 6: 連線中斷與資源釋放
+    note over Client, Runner: WebSocket 斷開連線 或 任務異常/取消
+    Client-xUT: 斷開連線
+    deactivate UT
+    DT->>DT: 取消下游任務 / 中斷 iteration
+    deactivate DT
+    activate LS
+    LS->>LQ: close() (關閉佇列緩衝區)
+    note over LS: 優雅關閉 gRPC / HTTP 網路連接資源
+    deactivate LS

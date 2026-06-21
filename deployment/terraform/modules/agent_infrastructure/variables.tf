@@ -68,6 +68,8 @@ variable "app_sa_roles" {
     "roles/cloudtrace.agent",
     "roles/storage.admin",
     "roles/serviceusage.serviceUsageConsumer",
+    "roles/bigquery.dataEditor",
+    "roles/bigquery.jobUser",
   ]
 }
 
@@ -121,4 +123,17 @@ variable "db_deletion_protection" {
   description = "Whether to enable deletion protection on the Cloud SQL instance."
   default     = false
 }
+
+variable "bq_analytics_dataset" {
+  type        = string
+  description = "BigQuery dataset name for agent analytics."
+  default     = "agent_analytics"
+}
+
+variable "bq_location" {
+  type        = string
+  description = "BigQuery dataset location."
+  default     = "US"
+}
+
 

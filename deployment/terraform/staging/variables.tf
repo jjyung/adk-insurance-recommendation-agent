@@ -63,6 +63,8 @@ variable "app_sa_roles" {
     "roles/cloudtrace.agent",
     "roles/storage.admin",
     "roles/serviceusage.serviceUsageConsumer",
+    "roles/bigquery.dataEditor",
+    "roles/bigquery.jobUser",
   ]
 }
 
@@ -107,4 +109,17 @@ variable "enable_pii_redaction" {
   description = "Toggle for enabling PII redaction (1 for true, 0 for false)."
   default     = "1"
 }
+
+variable "bq_analytics_dataset" {
+  type        = string
+  description = "BigQuery dataset name for agent analytics."
+  default     = "agent_analytics"
+}
+
+variable "bq_location" {
+  type        = string
+  description = "BigQuery dataset location."
+  default     = "US"
+}
+
 

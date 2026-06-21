@@ -1,0 +1,55 @@
+sequenceDiagram
+    autonumber
+    actor Dev as Developer (開發者)
+    participant Git as GitHub (Repo)
+    participant CB as Cloud Build (CI/CD)
+    participant AR as Artifact Registry
+    participant TF as Terraform (IaC)
+    participant GCP as GCP Resources (Cloud Run, SQL)
+    participant DB as Cloud SQL (PostgreSQL)
+
+    %% Day 0: Bootstrap Environment (Dev/Staging/Prod Initial Setup)
+    rect rgb(240, 248, 255)
+        note right of Dev: Phase 0: Day 0 Bootstrap (首次環境建立)
+        Dev->>TF: 執行 make tf-gen-config
+        TF-->>GCP: 建立 Terraform State GCS Bucket
+        Dev->>CB: 執行 make build-push
+        CB->>AR: 自動建立儲存庫並推送 Backend/Frontend Image
+        Dev->>TF: 執行 make tf-apply (基於 ENV_NAME)
+        TF->>GCP: 部署 Cloud Run, Cloud SQL, BigQuery 等基礎設施
+        Dev->>DB: 執行 make gcp-db-setup
+        DB-->>DB: 建立 Schema、寫入 Seed Data、完成 FAQ 向量化
+    end
+
+    %% Phase 1: Continuous Integration (PR)
+    rect rgb(245, 245, 245)
+        note right of Dev: Phase 1: Continuous Integration (PR 階段)
+        Dev->>Git: 開啟 Pull Request
+        Git->>CB: 觸發 pr_checks.yaml
+        CB-->>CB: 執行代碼檢查 (make lint)
+        CB-->>CB: 執行單元測試 (make test)
+        CB->>TF: 執行 terraform plan (預覽變更)
+        TF-->>CB: 回報基礎設施變更預覽
+        CB-->>Git: 狀態回報 (Pass/Fail)
+    end
+
+    %% Phase 2: Continuous Deployment to Staging
+    rect rgb(255, 250, 240)
+        note right of Dev: Phase 2: CD to Staging (合併至 main)
+        Dev->>Git: 合併 PR 至 main
+        Git->>CB: 觸發 staging.yaml
+        CB->>AR: 建置並推送新版 Image (Tag: SHA)
+        CB->>TF: 執行 terraform apply (針對 Staging)
+        TF->>GCP: 更新 Staging Cloud Run 服務
+        CB-->>CB: 執行部署後評估 (make eval-all)
+    end
+
+    %% Phase 3: Continuous Deployment to Production
+    rect rgb(255, 240, 245)
+        note right of Dev: Phase 3: CD to Production (發布版本)
+        Dev->>Git: 建立 Git Tag (e.g., v1.0.0)
+        Git->>CB: 觸發 deploy-to-prod.yaml
+        CB->>AR: 晉升映像檔 (Promote Image: Staging -> Prod Latest)
+        CB->>TF: 執行 terraform apply (針對 Prod)
+        TF->>GCP: 更新 Production Cloud Run 服務
+    end

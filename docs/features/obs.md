@@ -92,36 +92,103 @@
 
 ## 4. 常用分析 SQL (BigQuery Recipes)
 
-以下提供幾個常見的營運分析查詢範例（需在 BigQuery Console 執行）：
+以下提供專案中常見的營運分析與對話除錯查詢範例。請在 BigQuery Console 中執行：
 
-### 4.1 計算平均 Token 消耗與延遲
+### 4.1 對話與模型輸入/輸出內容分析（基於 `insurance_agent_telemetry_dev`）
+
+此資料集透過 `completions_view` 視圖，將 Cloud Logging 的元數據與 GCS 備份的對話 Payload 實時進行 JOIN 整合。
+
+#### 4.1.1 查詢特定 Trace（對話流程）的完整對話歷史與工具執行軌跡
 ```sql
 SELECT
-  AVG(usage_total_tokens) as avg_tokens,
-  AVG(total_ms) as avg_llm_ms
-FROM `您的專案ID.您的資料集.v_llm_response`;
+  timestamp,
+  trace,
+  message_type,
+  role,
+  message_idx,
+  part_idx,
+  part_type,
+  content,
+  tool_name,
+  tool_args,
+  tool_response
+FROM `adk-agent-495303.insurance_agent_telemetry_dev.completions_view`
+WHERE trace = '在此填入目標_Trace_ID'
+ORDER BY message_idx ASC, part_idx ASC;
 ```
 
-### 4.2 尋找最耗時的工具
+#### 4.1.2 檢索包含特定關鍵字（如「保單」、「退保」）的對話內容
+```sql
+SELECT
+  timestamp,
+  trace,
+  role,
+  content
+FROM `adk-agent-495303.insurance_agent_telemetry_dev.completions_view`
+WHERE role = 'model' 
+  AND content LIKE '%保單%'  -- 請輸入您想搜尋的關鍵字
+ORDER BY timestamp DESC
+LIMIT 100;
+```
+
+#### 4.1.3 監控模型調用工具（Function Calling）的詳細參數與返回值
+```sql
+SELECT
+  timestamp,
+  trace,
+  tool_name,
+  tool_args,
+  tool_response
+FROM `adk-agent-495303.insurance_agent_telemetry_dev.completions_view`
+WHERE part_type = 'function_call' OR tool_name IS NOT NULL
+ORDER BY timestamp DESC
+LIMIT 50;
+```
+
+---
+
+### 4.2 效能與成本分析（基於 `agent_analytics`）
+
+> 💡 **注意事項 (Troubleshooting)**：
+> 1. **非同步動態建立**：`BigQueryAgentAnalyticsPlugin` 只有在**部署後的 Agent 接收到第一次對話（Conversation Turn）**時，才會在 BigQuery 中非同步動態建立該資料集（預設名稱為 `agent_analytics`）與相關視圖（如 `v_llm_response`, `v_tool_completed`）。如果您剛完成部署，且從未與 Agent 進行過對話測試，該資料集將不存在。請先到 UI 或利用 API 與 Agent 進行至少一次對話。
+> 2. **合併資料集配置**：如果您在部署時（透過環境變數 `BQ_ANALYTICS_DATASET`）將分析資料集與遙測資料集指定為同一個（例如設為 `insurance_agent_telemetry_dev`），請將下方查詢中的 `agent_analytics` 替換為 `insurance_agent_telemetry_dev`。
+
+若您啟用了 `BigQueryAgentAnalyticsPlugin`，則可以使用以下預建分析視圖進行分析：
+
+#### 4.2.1 計算平均 Token 消耗與 LLM 延遲
+```sql
+SELECT
+  COUNT(*) as total_requests,
+  AVG(usage_prompt_tokens) as avg_prompt_tokens,
+  AVG(usage_candidates_tokens) as avg_completion_tokens,
+  AVG(usage_total_tokens) as avg_total_tokens,
+  SUM(usage_total_tokens) as sum_total_tokens,
+  AVG(total_ms) as avg_llm_ms
+FROM `adk-agent-495303.agent_analytics.v_llm_response`;
+```
+
+#### 4.2.2 尋找最耗時的工具（效能瓶頸分析）
 ```sql
 SELECT
   tool_name,
   tool_origin,
   COUNT(*) as call_count,
-  AVG(total_ms) as avg_latency_ms
-FROM `您的專案ID.您的資料集.v_tool_completed`
+  AVG(total_ms) as avg_latency_ms,
+  MAX(total_ms) as max_latency_ms
+FROM `adk-agent-495303.agent_analytics.v_tool_completed`
 GROUP BY tool_name, tool_origin
 ORDER BY avg_latency_ms DESC;
 ```
 
-### 4.3 追蹤特定對話的完整過程
+#### 4.2.3 追蹤特定對話的完整生命週期過程
 ```sql
 SELECT
   timestamp,
   event_type,
   agent,
+  total_ms,
   JSON_VALUE(content, '$.response') as response_summary
-FROM `您的專案ID.您的資料集.agent_events`
+FROM `adk-agent-495303.agent_analytics.agent_events`
 WHERE trace_id = '在此填入目標_Trace_ID'
 ORDER BY timestamp ASC;
 ```

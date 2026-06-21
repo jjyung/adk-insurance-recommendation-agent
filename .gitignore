@@ -95,3 +95,6 @@ docs/raw/
 graphify-out/*
 !graphify-out/graph.json
 !graphify-out/graph.html
+
+# graphify-visualization
+/graphify-out/*
