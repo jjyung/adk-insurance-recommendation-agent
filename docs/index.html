@@ -975,63 +975,64 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
       <section class="codelab-step" id="step-3">
         <div class="codelab-step__header">
           <span class="codelab-step__num">3</span>
-          <h2 class="codelab-step__title">深度解析：核心技術實作與全生命週期對照</h2>
+          <h2 class="codelab-step__title">技術導師導讀：WebSocket 多模態串流核心實作</h2>
         </div>
-        <p>本章節深入剖析本專案的核心技術架構。為了提昇學習成效、避免因資訊過於密集而失去焦點，我們將繁複的實作細節進行了模組化重構。請讀者先掌握以下<b>三大核心技術支柱</b>與<b>關鍵代碼地圖</b>，再展開下方摺疊面板循序漸進地探索細節！</p>
+        <p>本章節會用技術講師帶領實作的角度，拆解保險推薦 Agent 從「一般文字串流」進階到「多模態即時互動」的關鍵設計。閱讀時請把重心放在 <b>階段 3：WebSocket 多模態 Gemini Live 雙向串流生命週期</b>：它是本 workshop 最能體現即時 AI Agent 工程能力的核心段落。</p>
+        <p>講師帶讀時，建議先用階段 1 與階段 2 建立必要背景，再把主要時間投入階段 3：觀察 WebSocket 如何完成安全握手、RunConfig 初始化、上下游任務併發、媒體封包轉換、模型事件回傳，以及斷線後的資源回收。</p>
 
         <!-- 三大核心技術支柱卡片 -->
         <div class="learning-pillars-container">
           <div class="learning-pillar-card">
-            <h4>Pillar A：相依性容器化 (DI Pattern)</h4>
-            <p>掌握 <code>AppContainer</code> 單例設計，理解資料庫、Agent、Runner 的組裝以及測試期的 Mock 替換機制。</p>
+            <h4>導讀 A：先建立服務依賴圖</h4>
+            <p>快速掌握 <code>AppContainer</code> 如何組裝資料庫、Agent、Runner 與服務層，讓後續 Live 串流能站在穩定的應用生命週期上。</p>
           </div>
           <div class="learning-pillar-card">
-            <h4>Pillar B：SSE 串流與事件轉譯</h4>
-            <p>學習 ADK 原始 Event 如何動態對應、轉譯成前端 Envelope，掌握文字 append 串流與狀態同步補丁（Patch）。</p>
+            <h4>導讀 B：用 SSE 理解事件轉譯</h4>
+            <p>把 ADK Event 轉成前端可消費的 Envelope，先理解 message、timeline、state patch 的資料形狀，再銜接到 WebSocket 的雙向即時事件。</p>
           </div>
           <div class="learning-pillar-card">
-            <h4>Pillar C：全雙工 Bidi 並工排程</h4>
-            <p>理解 Live API 雙向非同步上下游任務協同，學習如何在 <code>asyncio</code> 併發與中斷下實現零記憶體洩漏清理。</p>
+            <h4>導讀 C：主軸是 WebSocket Bidi 並行調度</h4>
+            <p>重點觀察 <code>LiveAgentService</code> 如何同時管理 Client 到 Agent 的上游媒體流，以及 Agent 到 Client 的下游模型事件，並在中斷時安全收束所有資源。</p>
           </div>
         </div>
 
         <!-- 關鍵代碼地圖 -->
-        <h3>🎯 關鍵代碼地圖 (Key Code Map)</h3>
-        <p>學員在閱讀下方流程說明時，強烈建議隨時對照 VS Code 打開以下檔案，這能幫助你快速將抽象架構轉化為具體體感：</p>
+        <h3>🎯 講師帶讀代碼地圖 (Instructor Code Map)</h3>
+        <p>帶學員閱讀此章時，建議依照下列順序打開檔案。前兩列是本章主軸，後兩列是支撐背景；這樣可以避免學員先陷入框架細節，而忽略 Live WebSocket 的資料流。</p>
         <table class="codelab-table">
           <thead>
             <tr>
-              <th>核心檔案與方法</th>
+              <th>帶讀順序與核心檔案</th>
               <th>技術定位</th>
-              <th>面試/核心考點 (Key Focus)</th>
+              <th>講師引導重點</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td><code>app/container.py</code><br/>➔ <code>build_app_container</code></td>
-              <td>依賴注入與容器工廠</td>
-              <td>1. 如何在一點集中初始化所有 Singleton 元件？<br/>2. 如何區分文字模型與 Live 語音多模態模型的 Runner？</td>
-            </tr>
-            <tr>
-              <td><code>app/services/agent_run_service.py</code><br/>➔ <code>stream</code> &amp; <code>map_adk_event_to_envelopes</code></td>
-              <td>SSE 串流執行與轉譯服務</td>
-              <td>1. <b>如何偵測並過濾重複的用戶 Echo（回顯）訊息？</b><br/>2. 如何將 ADK 事件狀態差值轉譯為前端控制台 Patch？</td>
-            </tr>
-            <tr>
-              <td><code>app/services/live_agent_service.py</code><br/>➔ <code>execute_live_session</code></td>
+              <td>1. <code>app/services/live_agent_service.py</code><br/>➔ <code>execute_live_session</code></td>
               <td>WebSocket 雙向串流協調服務</td>
-              <td>1. 如何配置 RunConfig 以支援繁中 TTS/STT？<br/>2. <b>如何利用 asyncio.wait 首個異常時徹底取消其餘任務並安全釋放 gRPC 連接？</b></td>
+              <td>示範一條 Live 連線如何建立 <code>RunConfig</code>、啟動上下游任務、監控第一個異常，並在斷線時取消 pending task 與關閉 <code>LiveRequestQueue</code>。</td>
             </tr>
             <tr>
-              <td><code>app/streaming/upstream.py</code><br/>➔ <code>_resize_image_if_needed</code></td>
-              <td>多模態上游串流優化</td>
-              <td>1. <b>大圖為何會引發 Live API 維度報錯？</b><br/>2. 縮放演算法與格式優化如何節省 70%+ 的網絡傳輸帶寬？</td>
+              <td>2. <code>app/streaming/upstream.py</code><br/>➔ <code>upstream_task</code> / <code>_resize_image_if_needed</code></td>
+              <td>多模態上游媒體封包處理</td>
+              <td>帶學員看音訊、文字、圖片、視訊影格如何被轉成 Live API 可接受的資料；特別說明圖片縮放與 JPEG 轉換如何降低延遲與錯誤率。</td>
+            </tr>
+            <tr>
+              <td>3. <code>app/services/agent_run_service.py</code><br/>➔ <code>stream</code> &amp; <code>map_adk_event_to_envelopes</code></td>
+              <td>SSE 串流執行與事件轉譯服務</td>
+              <td>用文字串流建立事件模型基礎：meta、message append、timeline、state patch 與 done，協助學員理解前端為什麼需要統一的事件 Envelope。</td>
+            </tr>
+            <tr>
+              <td>4. <code>app/container.py</code><br/>➔ <code>build_app_container</code></td>
+              <td>依賴注入與容器工廠</td>
+              <td>補充 Live Runner、文字 Runner、Session Service、Audit Service 如何在應用啟動時被組裝，讓 WebSocket route 能保持薄而清楚。</td>
             </tr>
           </tbody>
         </table>
 
         <!-- 摺疊面板區：漸進式學習 -->
-        <h3>⚙️ 全生命週期深度剖析（點擊展開各階段細節）</h3>
+        <h3>⚙️ 技術生命週期導讀（主軸請聚焦階段 3）</h3>
 
         <!-- 摺疊 1 -->
         <details class="tech-accordion">
@@ -1079,7 +1080,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
               </li>
               <li><strong>過濾重複用戶回顯 (Echo Filter)</strong>：
                 <ul>
-                  <li><b>學員必看</b>：ADK 的執行流在第一個回合（Turn）通常會將用戶的原始輸入（Prompt）作為 Event 重新拋出。為了防止前端在對話歷程中繪製出重複的對話氣泡，<code>AgentRunService</code> 內建了 <code>is_echoed_user_input()</code> 過濾器，精確比對並截斷第一個重複的 user event。</li>
+                  <li><b>講師帶讀提醒</b>：ADK 的執行流在第一個回合（Turn）通常會將用戶的原始輸入（Prompt）作為 Event 重新拋出。這裡可以帶學員觀察 <code>AgentRunService</code> 如何用 <code>is_echoed_user_input()</code> 過濾重複 user event，避免前端對話氣泡重複繪製。</li>
                 </ul>
               </li>
               <li><strong>事件協議轉換 (<code>map_adk_event_to_envelopes</code>)</strong>：
@@ -1145,53 +1146,60 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
           </div>
   </details>
 
-  <details class="tech-accordion">
+  <details class="tech-accordion" open>
     <summary>階段 3：WebSocket 多模態 Gemini Live 雙向串流生命週期 (Gemini Live stream)</summary>
     <div class="tech-accordion-content">
-        <p>為支援全雙工語音、即時視訊影格分析等低延遲互動，系統提供了一套基於 <strong>Gemini Multimodal Live API</strong> 的 WebSocket 雙向串流架構：</p>
+        <p>這是本章的主要實作段落。講師可以把它當成一條完整的「即時 AI 通話管線」來帶：前端先建立 WebSocket 長連線，後端完成 JWT 安全握手，接著 <code>LiveAgentService</code> 建立 Live API 執行配置，最後用兩個非同步任務分別處理上游媒體輸入與下游模型回應。</p>
+        <p>請提醒學員：WebSocket Live 串流的難點不只是把資料送出去，而是要同時處理低延遲、媒體格式、錯誤邊界、使用者斷線、模型端中斷與資源釋放。下面每一小段都對應一個真實系統會遇到的工程問題。</p>
         <ol>
           <li><strong>建立連線與 WebSocket 安全握手 (Connection &amp; Handshake)</strong>：
             <ul>
-              <li><strong>發起握手</strong>：前端發起 WebSocket 長連線請求至 <code>/api/agent/live/ws/{session_id}</code>，並在 Query string 中附加 <code>token</code> 參數。</li>
-              <li><strong>手動 JWT 認證</strong>：路由端點手動提取 <code>token</code>，呼叫 <code>decode_access_token()</code> 進行解密，核對使用者狀態。若不合規，立即回應 <code>WS_1008_POLICY_VIOLATION</code> 強制斷開。</li>
-              <li><strong>旗標寫入與委派</strong>：握手通過後，接受 WebSocket 連線。路由將前端傳入的個性化功能開關（<code>proactivity</code>, <code>affective_dialog</code>）同步寫入 Session State 中，最後將對話委派給 <code>LiveAgentService</code> 託管。</li>
+              <li><strong>講師示範入口</strong>：從前端發起 <code>/api/agent/live/ws/{session_id}</code> 長連線開始，說明為什麼瀏覽器 WebSocket 常需要把 token 放在 Query string，再由後端手動取出驗證。</li>
+              <li><strong>安全邊界</strong>：路由端點呼叫 <code>decode_access_token()</code> 核對使用者狀態。若不合規，立即回應 <code>WS_1008_POLICY_VIOLATION</code>，讓學員理解「WebSocket 也必須和 REST API 一樣有身份與權限邊界」。</li>
+              <li><strong>會話設定進入狀態</strong>：握手通過後，路由將 <code>proactivity</code>、<code>affective_dialog</code> 等功能開關同步寫入 Session State，再把後續對話委派給 <code>LiveAgentService</code>。這裡可以帶出「route thin, service owns lifecycle」的設計原則。</li>
             </ul>
           </li>
           <li><strong>初始化會話與資源配置 (Resource Allocation)</strong>：
             <ul>
-              <li><strong>建立雙向執行配置 (<code>RunConfig</code>)</strong>：啟用模態設定為 <code>"AUDIO"</code>（語音回應模式）、全雙工雙向串流 <code>StreamingMode.BIDI</code>、繁體中文 STT/TTS、並配置 <code>ProactivityConfig</code>（主動發話模式）。</li>
-              <li><strong>資源閉包初始化</strong>：實例化並行安全緩衝佇列 <code>LiveRequestQueue</code>，作為 WebSocket 與 ADK 核心之間的非同步資料通道。並確保此連線的工作階段在 PostgreSQL 資料庫中存在。</li>
+              <li><strong>RunConfig 是 Live 行為的開關面板</strong>：啟用 <code>"AUDIO"</code> 回應模態、<code>StreamingMode.BIDI</code> 全雙工串流、繁體中文 STT/TTS，以及 <code>ProactivityConfig</code>。講師可在此說明：模型能力、語音互動體驗與延遲表現，都會被這個配置直接影響。</li>
+              <li><strong>LiveRequestQueue 是前後端與模型之間的緩衝橋</strong>：它把 WebSocket 收到的音訊、圖片、文字與視訊影格整理成 ADK Runner 可消費的非同步資料流；同時也讓斷線與取消時有單一關閉點。</li>
+              <li><strong>Session 必須先存在</strong>：Live 串流雖然是即時連線，但仍要確保 PostgreSQL 中已有對應工作階段，否則後續狀態、審計與個人化開關都會失去落點。</li>
             </ul>
           </li>
           <li><strong>並行調度上游與下游任務 (Concurrency &amp; Dual-Task Scheduling)</strong>：
-            <p><code>LiveAgentService.execute_live_session()</code> 啟用非同步任務協調。利用 Python <code>asyncio</code> 同步啟動兩個執行續任務，並使用 <code>asyncio.wait(..., return_when=asyncio.FIRST_EXCEPTION)</code> 實作容錯監控：</p>
+            <p><code>LiveAgentService.execute_live_session()</code> 是講師應該慢下來講解的核心方法。它利用 Python <code>asyncio</code> 同步啟動兩條任務，並用 <code>asyncio.wait(..., return_when=asyncio.FIRST_EXCEPTION)</code> 監控任一側是否先出錯：</p>
             <ul>
-              <li><strong>上游任務 (Client ➔ Agent)</strong>：託管於 <code>upstream_task</code>，負責消費 WebSocket 端點發來的媒體資料，過濾優化後寫入緩衝。</li>
-              <li><strong>下游任務 (Agent ➔ Client)</strong>：託管於 <code>downstream_task</code>，負責監聽並讀取模型生成的即時事件，序列化後轉發回前端播放。</li>
+              <li><strong>上游任務 (Client ➔ Agent)</strong>：<code>upstream_task</code> 持續消費 WebSocket 傳來的音訊、影像、文字與控制訊息，清理或壓縮後寫入 <code>LiveRequestQueue</code>。</li>
+              <li><strong>下游任務 (Agent ➔ Client)</strong>：<code>downstream_task</code> 啟動 <code>runner.run_live()</code>，持續讀取模型回傳事件，序列化後傳回瀏覽器播放或顯示。</li>
+              <li><strong>講師提醒</strong>：這裡的重點是「兩條流同時存在」。使用者可能一邊講話，模型一邊回應；任一側斷掉，另一側都必須被取消，否則就會留下仍在等待 I/O 的背景任務。</li>
             </ul>
           </li>
           <li><strong>上游處理機制 (Upstream Handling - Client ➔ Agent)</strong>：
-            <p><code>upstream_task()</code> 運行一條無窮迴圈，持續讀取前端傳送的封包：</p>
+            <p><code>upstream_task()</code> 是觀察多模態輸入的最佳入口。講師可以現場對照瀏覽器送出的封包，讓學員看到不同媒體型別如何被轉成 Live API 可接受的資料：</p>
             <ul>
-              <li><strong>PCM 二進位音訊流</strong>：直接讀取來自前端麥克風的 raw PCM bytes，包裝為 Blob，以 <code>send_realtime()</code> 發送。</li>
-              <li><strong>文字輸入 (<code>type: "text"</code>)</strong>：將文字轉為 types.Part 並呼叫 <code>send_content()</code>。</li>
-              <li><strong>圖片輸入 (<code>type: "image"</code>)</strong>：解碼 Base64 圖片。為了優化模型讀取效能與網路帶寬效益，內建<b>多模態影像自動縮放機制 (<code>_resize_image_if_needed</code>)</b>：自動等比例將大圖的最長邊限制在 1024 像素內、剔除透明通道（Alpha Channel）並統一轉為高壓縮率的 JPEG，包裝為 Blob 經由 <code>send_realtime()</code> 推送，隨後送出引導 Prompt。</li>
-              <li><strong>視訊/分享影格 (<code>type: "video_frame"</code>)</strong>：連續不斷傳送的攝像頭或螢幕共享影格，使用 <code>send_realtime()</code> 發送。</li>
-              <li><strong>客戶端中斷命令 (<code>type: "close"</code>)</strong>：主動關閉佇列並跳出上游迴圈。</li>
+              <li><strong>PCM 二進位音訊流</strong>：前端麥克風送出的 raw PCM bytes 會被包裝為 Blob，透過 <code>send_realtime()</code> 進入模型即時緩衝。這是語音低延遲體驗的主路徑。</li>
+              <li><strong>文字輸入 (<code>type: "text"</code>)</strong>：文字會轉成 <code>types.Part</code> 並呼叫 <code>send_content()</code>。這裡可說明「同一條 WebSocket 不只傳音訊，也能承載控制型與補充型文字訊息」。</li>
+              <li><strong>圖片輸入 (<code>type: "image"</code>)</strong>：Base64 圖片先解碼，再經過 <code>_resize_image_if_needed</code> 自動縮放、移除 Alpha Channel、轉成 JPEG。這不是畫質美化，而是為了降低 Live API 維度錯誤、減少頻寬與縮短模型接收延遲。</li>
+              <li><strong>視訊/分享影格 (<code>type: "video_frame"</code>)</strong>：攝像頭或螢幕共享影格會連續透過 <code>send_realtime()</code> 推送。講師可提醒學員：影格頻率、尺寸與壓縮策略會直接影響成本、延遲與穩定性。</li>
+              <li><strong>客戶端中斷命令 (<code>type: "close"</code>)</strong>：當前端主動要求關閉，後端不只是 break loop，而是要關閉 queue，讓下游模型端也能收到停止訊號。</li>
             </ul>
           </li>
           <li><strong>下游處理機制 (Downstream Handling - Agent ➔ Client)</strong>：
-            <p><code>downstream_task()</code> 調用 <code>runner.run_live()</code> 啟動 Gemini Live API。當模型有任何回應時，非同步消費其拋出的事件：</p>
+            <p><code>downstream_task()</code> 是模型回應回到瀏覽器的路徑。它調用 <code>runner.run_live()</code> 啟動 Gemini Live API，然後非同步消費模型產生的事件：</p>
             <ul>
-              <li><strong>語音合成轉錄 (Transcription)</strong>：當模型發話或使用者說話時，系統接收並在後端日誌中實時輸出音訊轉文字結果（STT/TTS 對照），方便偵錯。</li>
-              <li><strong>嚴重錯誤攔截與管制 (Terminal Errors)</strong>：自動檢查 <code>event.error_code</code>。若偵測到安全守門員阻斷（<code>SAFETY</code>）、敏感內容防護（<code>PROHIBITED_CONTENT</code>）、超出硬上限（<code>MAX_TOKENS</code>） 或 配額耗盡（<code>RESOURCE_EXHAUSTED</code>）等致命錯誤，系統將錯誤訊息包裝為 JSON 發送回前端，並主動中斷下游執行。</li>
-              <li><strong>資料發送</strong>：將合法的即時事件轉化為 JSON（透過 <code>model_dump_json(exclude_none=True, by_alias=True)</code> 剔除多餘空欄位、壓縮帶寬），以 WebSocket 發送給前端，由前端解碼並將音訊實時發聲。</li>
+              <li><strong>語音合成與轉錄觀察</strong>：當模型發話或使用者說話時，後端會接收即時事件與轉錄資訊。這是講師帶偵錯時最直觀的觀察點，可用來確認音訊是否真的被模型接收、模型是否正在生成語音回應。</li>
+              <li><strong>Terminal Errors 必須轉成前端可理解的訊息</strong>：當 <code>SAFETY</code>、<code>PROHIBITED_CONTENT</code>、<code>MAX_TOKENS</code>、<code>RESOURCE_EXHAUSTED</code> 等錯誤出現時，系統會把錯誤包裝成 JSON 傳回前端，並主動中止下游。這讓使用者看到明確狀態，也避免後端繼續等待不會再有結果的模型串流。</li>
+              <li><strong>正常事件序列化</strong>：合法事件透過 <code>model_dump_json(exclude_none=True, by_alias=True)</code> 移除空欄位後送回 WebSocket。講師可在此提醒：即時系統中，每個多餘欄位都會在高頻事件下變成可感知的頻寬成本。</li>
             </ul>
           </li>
           <li><strong>連線斷開與安全資源回收 (Disconnection &amp; Cleanup)</strong>：
-            <p>當前端離線（觸發 <code>WebSocketDisconnect</code>）或下游任務拋出異常結束時，並行調度器會立即對仍在執行的 pending 任務發送 <code>cancel()</code>，並確保進入 <code>finally</code> 區塊執行 <code>live_request_queue.close()</code>。這能<b>安全切斷底層 gRPC 連接，徹底杜絕記憶體洩漏（Memory Leak）與孤立執行緒問題</b>，維護高併發下系統的健康度。</p>
+            <p>這是講師最應強調的工程收尾。當前端離線（觸發 <code>WebSocketDisconnect</code>）或下游任務拋出異常時，並行調度器會立即對仍在執行的 pending 任務發送 <code>cancel()</code>，並確保進入 <code>finally</code> 區塊執行 <code>live_request_queue.close()</code>。這能安全切斷底層 gRPC 連接，避免記憶體洩漏與背景協程殘留，讓系統在多人同時使用時仍能保持穩定。</p>
           </li>
         </ol>
+        <div class="callout callout-note">
+          <strong>WORKSHOP CHECKPOINT:</strong>
+          <p>帶學員完成此段後，請確認他們能用自己的話說明三件事：第一，WebSocket route 只負責握手與授權，真正的 Live 生命週期在 <code>LiveAgentService</code>；第二，<code>upstream_task</code> 與 <code>downstream_task</code> 是同時運作的兩條資料流；第三，任一側中斷時必須取消另一側並關閉 <code>LiveRequestQueue</code>。</p>
+        </div>
         <p>下方為完整的 Gemini Live WebSocket 呼叫時序圖：</p>
         <div class="mermaid">
         sequenceDiagram
@@ -1298,18 +1306,18 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
     </div>
   </details>
 
-  <!-- 改善 4：避坑與面試考點 Gotchas -->
+  <!-- 改善 4：講師提醒與實作觀察 Gotchas -->
   <div class="callout callout-warning">
-    <strong>💡 避坑指引與高頻面試考點 (GOTCHAS & INTERVIEW ESSENTIALS)</strong>
+    <strong>💡 講師提醒與實作觀察 (INSTRUCTOR GOTCHAS)</strong>
     <ul>
-      <li><strong>為什麼必須過濾 Echo 訊息？</strong><br/>
-        在非同步 Runner 發送消息時，ADK 會拋出一個包含使用者原始輸入的轉發 Event。如果不在此處進行攔截過濾（比對 text 與 user input），學員的前端會印出重複的對話。這在系統整合與面試中是非常經典的 RAG/Agent 狀態機細節考點。
+      <li><strong>先讓學員看見 Echo，再說明為什麼要過濾。</strong><br/>
+        在非同步 Runner 發送消息時，ADK 可能拋出包含使用者原始輸入的轉發 Event。講師可以先示範如果不攔截會造成前端重複對話氣泡，再回到 <code>is_echoed_user_input()</code> 說明事件邊界的必要性。
       </li>
-      <li><strong>多模態 Live API 的圖片像素限制是？</strong><br/>
-        Gemini 2.5/Live 模型在直接接收大圖 PCM 時可能會引發 <code>1007 Dimension Mismatch</code> 或是極高延遲。在 `upstream.py` 中，手動使用 PIL (LANCZOS 演算法) 限制寬度在 1024 像素內，轉 RGB 剔除 PNG 帶有的 Alpha 通道，並強壓成 JPEG。這不僅保障了百分之百的通訊穩定，還將帶寬消耗縮減了 75% 以上！
+      <li><strong>圖片縮放要從使用者體驗說起，而不是從限制說起。</strong><br/>
+        Gemini Live 接收過大的圖片或影格時，可能引發維度錯誤或顯著延遲。帶學員看 <code>upstream.py</code> 時，請強調這段處理的目標是維持即時互動流暢度：限制尺寸、轉 RGB、移除透明通道、輸出 JPEG，都是為了讓模型更快、更穩定地消費影像。
       </li>
-      <li><strong>全雙工併發中斷如何防止 gRPC 套接字洩漏？</strong><br/>
-        當用戶忽然點擊關閉，或者是麥克風網絡套接字異常斷線，若後端仍在對 Live API 進行阻塞讀寫（Downstream task 阻塞在 <code>runner.run_live</code> 迭代中），會造成<b>孤兒協程 (Orphaned Coroutine)</b>。使用 <code>asyncio.wait(..., return_when=FIRST_EXCEPTION)</code> 能確保一旦其中一端發生斷線（拋出 WebDisconnect），另一端會立刻被拋出 Cancel 訊號，並在 <code>finally</code> 中確實呼叫 <code>live_request_queue.close()</code> 銷毀所有協程緩衝區與網絡資源！
+      <li><strong>斷線清理是 Live WebSocket 實作的收尾主題。</strong><br/>
+        當使用者關閉頁面、麥克風中斷或模型端回傳 terminal error 時，後端若仍阻塞在 <code>runner.run_live</code> 迭代中，就會留下背景協程與網路資源。請帶學員對照 <code>asyncio.wait(..., return_when=FIRST_EXCEPTION)</code>、pending task cancel、以及 <code>live_request_queue.close()</code>，理解為什麼即時系統的穩定性取決於清理邏輯是否完整。
       </li>
     </ul>
   </div>
