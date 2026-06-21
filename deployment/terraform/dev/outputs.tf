@@ -74,6 +74,11 @@ output "db_initialization_instructions" {
     ✅ 若要初始化資料庫 Schema 並匯入初始資料 (Seed Data)，請執行：
     make gcp-db-setup GCP_PROJECT_ID=${var.project_id}
 
+    ✅ 測試服務: 請執行： ${module.agent_infrastructure.frontend_uri}
+    使用者登入資訊：
+    - 帳號: testuser
+    - 密碼: password123
+
     ====================================================================
   EOT
 }

@@ -83,92 +83,109 @@ export function useLiveAgent({ sessionId, userId, proactivity = false, affective
     }
     isClosingRef.current = false;
 
-    // Determine target host and protocol
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL;
-    let wsUrl: string;
-
-    if (backendUrl && backendUrl.startsWith('http')) {
-      // Direct connection to backend (Cloud Run)
-      const wsProtocol = backendUrl.startsWith('https') ? 'wss:' : 'ws:';
-      const cleanUrl = backendUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
-      wsUrl = `${wsProtocol}//${cleanUrl}/api/agent/live/ws/${sessionId}?user_id=${userId}&proactivity=${proactivity}&affective_dialog=${affectiveDialog}&token=${accessToken || ''}`;
-    } else {
-      // Local development or relative path via Next.js proxy
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const host = window.location.host;
-      wsUrl = `${protocol}//${host}/api/agent/live/ws/${sessionId}?user_id=${userId}&proactivity=${proactivity}&affective_dialog=${affectiveDialog}&token=${accessToken || ''}`;
-    }
-
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      if (isClosingRef.current) {
-        ws.close();
-        return;
+    // Determine target host and protocol dynamically to bypass Next.js standalone WebSocket proxy limitation
+    const establishConnection = async () => {
+      let backendUrl = process.env.NEXT_PUBLIC_API_URL;
+      
+      if (!backendUrl) {
+        try {
+          const res = await fetch('/api/config');
+          if (res.ok) {
+            const config = await res.json();
+            backendUrl = config.backendUrl;
+          }
+        } catch (err) {
+          console.warn('Failed to fetch dynamic backend config from /api/config, falling back to relative proxy path:', err);
+        }
       }
-      setStatus('connected');
-      isSoftReconnectingRef.current = false;
-    };
 
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
+      let wsUrl: string;
 
-        // Handle audio output
-        if (data.content?.parts) {
-          let hasAudio = false;
-          for (const part of data.content.parts) {
-            const inlineData = part.inlineData || part.inline_data;
-            const mimeType = inlineData?.mimeType || inlineData?.mime_type;
+      if (backendUrl && backendUrl.startsWith('http')) {
+        // Direct connection to backend (Cloud Run)
+        const wsProtocol = backendUrl.startsWith('https') ? 'wss:' : 'ws:';
+        const cleanUrl = backendUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+        wsUrl = `${wsProtocol}//${cleanUrl}/api/agent/live/ws/${sessionId}?user_id=${userId}&proactivity=${proactivity}&affective_dialog=${affectiveDialog}&token=${accessToken || ''}`;
+      } else {
+        // Local development or relative path via Next.js proxy
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const host = window.location.host;
+        wsUrl = `${protocol}//${host}/api/agent/live/ws/${sessionId}?user_id=${userId}&proactivity=${proactivity}&affective_dialog=${affectiveDialog}&token=${accessToken || ''}`;
+      }
 
-            if (mimeType?.startsWith('audio/') && inlineData?.data) {
-              playAudioChunk(inlineData.data);
-              hasAudio = true;
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        if (isClosingRef.current) {
+          ws.close();
+          return;
+        }
+        setStatus('connected');
+        isSoftReconnectingRef.current = false;
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          // Handle audio output
+          if (data.content?.parts) {
+            let hasAudio = false;
+            for (const part of data.content.parts) {
+              const inlineData = part.inlineData || part.inline_data;
+              const mimeType = inlineData?.mimeType || inlineData?.mime_type;
+
+              if (mimeType?.startsWith('audio/') && inlineData?.data) {
+                playAudioChunk(inlineData.data);
+                hasAudio = true;
+              }
+            }
+            if (hasAudio) {
+              setIsSpeaking(true);
+              if (speakingTimeoutRef.current) window.clearTimeout(speakingTimeoutRef.current);
+              speakingTimeoutRef.current = window.setTimeout(() => setIsSpeaking(false), 2000);
             }
           }
-          if (hasAudio) {
-            setIsSpeaking(true);
-            if (speakingTimeoutRef.current) window.clearTimeout(speakingTimeoutRef.current);
-            speakingTimeoutRef.current = window.setTimeout(() => setIsSpeaking(false), 2000);
+
+          if (data.server_type === 'error') {
+            const code = data.data?.code || 'ERROR';
+            const message = data.data?.message || '發生未知錯誤';
+            onErrorRef.current(`伺服器錯誤 [${code}]: ${message}`);
           }
+
+          onEventRef.current(data);
+        } catch (e) {
+          console.error('Error parsing WS message:', e);
+        }
+      };
+
+      ws.onerror = (e) => {
+        if (isClosingRef.current) return;
+        // console.error('WebSocket connection error. This often happens if the server is down or returning a 502 Bad Gateway.', e);
+        setStatus('error');
+        isSoftReconnectingRef.current = false;
+        onErrorRef.current('無法連線至語音伺服器 (可能為 502 Bad Gateway)，請確認後端服務已正常啟動且可供存取。');
+      };
+
+      ws.onclose = (event) => {
+        if (isSoftReconnectingRef.current) {
+          // Soft reconnecting - don't stop media streams
+          return;
         }
 
-        if (data.server_type === 'error') {
-          const code = data.data?.code || 'ERROR';
-          const message = data.data?.message || '發生未知錯誤';
-          onErrorRef.current(`伺服器錯誤 [${code}]: ${message}`);
+        setStatus('disconnected');
+        if (!isClosingRef.current && !event.wasClean) {
+          console.warn(`WebSocket closed unexpectedly: code=${event.code}, reason=${event.reason || 'none'}`);
         }
-
-        onEventRef.current(data);
-      } catch (e) {
-        console.error('Error parsing WS message:', e);
-      }
+        stopMic();
+        stopCamera();
+        stopScreen();
+        stopPlayback();
+      };
     };
 
-    ws.onerror = (e) => {
-      if (isClosingRef.current) return;
-      // console.error('WebSocket connection error. This often happens if the server is down or returning a 502 Bad Gateway.', e);
-      setStatus('error');
-      isSoftReconnectingRef.current = false;
-      onErrorRef.current('無法連線至語音伺服器 (可能為 502 Bad Gateway)，請確認後端服務已正常啟動且可供存取。');
-    };
-
-    ws.onclose = (event) => {
-      if (isSoftReconnectingRef.current) {
-        // Soft reconnecting - don't stop media streams
-        return;
-      }
-
-      setStatus('disconnected');
-      if (!isClosingRef.current && !event.wasClean) {
-        console.warn(`WebSocket closed unexpectedly: code=${event.code}, reason=${event.reason || 'none'}`);
-      }
-      stopMic();
-      stopCamera();
-      stopScreen();
-      stopPlayback();
-    };
+    establishConnection();
   }, [sessionId, userId, proactivity, affectiveDialog, playAudioChunk, stopMic, stopCamera, stopScreen, stopPlayback]);
 
   // Effect to handle soft reconnect when config changes
