@@ -347,13 +347,29 @@
       margin: 24px auto;
     }
     .codelab-img-wrapper {
+      position: relative;
       text-align: center;
       margin: 24px 0;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface);
+      padding: 48px 24px 24px; /* extra top padding for the control bar */
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      cursor: zoom-in;
+    }
+    .codelab-img-wrapper:hover {
+      border-color: var(--color-primary);
+      box-shadow: 0 4px 12px rgba(26, 115, 232, 0.08);
+    }
+    .codelab-img-wrapper img {
+      margin: 0 auto;
+      border: none;
     }
     .codelab-img-caption {
       font-size: 13px;
       color: var(--color-text-secondary);
-      margin-top: 8px;
+      margin-top: 16px;
       font-style: italic;
     }
     /* Image placeholder (when image file not found) */
@@ -2018,6 +2034,33 @@ make tf-apply</code></pre>
         container.appendChild(controlBar);
       });
 
+      // 2.5. Bind click & zoom logic to .codelab-img-wrapper & inject floating control bar
+      const imgWrappers = document.querySelectorAll('div.codelab-img-wrapper');
+      imgWrappers.forEach((wrapper) => {
+        const img = wrapper.querySelector('img');
+        if (!img) return;
+
+        // Make the image wrapper itself clickable to zoom
+        wrapper.addEventListener('click', () => {
+          openImageModal(img);
+        });
+
+        // Inject Control Bar with zoom trigger
+        const controlBar = document.createElement('div');
+        controlBar.className = 'mermaid-control-bar'; // reuse same control bar styling
+
+        const zoomBtn = document.createElement('button');
+        zoomBtn.className = 'mermaid-btn'; // reuse same button styling
+        zoomBtn.innerHTML = '🔍 點擊放大';
+        zoomBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent duplicate click events
+          openImageModal(img);
+        });
+
+        controlBar.appendChild(zoomBtn);
+        wrapper.appendChild(controlBar);
+      });
+
       // 3. Modal Zoom & Pan States
       let currentZoom = 1.0;
       const modal = document.getElementById('mermaidModal');
@@ -2114,6 +2157,49 @@ make tf-apply</code></pre>
         }, 50);
       }
 
+      // Open Image Modal
+      function openImageModal(img) {
+        const derivedTitle = img.alt || "圖片";
+        modal.querySelector('.mermaid-modal-title').innerHTML = `🖼️ 圖片：${derivedTitle}`;
+
+        // Clear and create/clone Image
+        svgContainer.innerHTML = '';
+        const clonedImg = document.createElement('img');
+        clonedImg.src = img.src;
+        clonedImg.alt = img.alt || "Zoomed image";
+        clonedImg.style.display = 'block';
+        clonedImg.style.maxWidth = 'none';
+        clonedImg.style.maxHeight = 'none';
+
+        let naturalWidth = img.naturalWidth || img.width || 800;
+        let naturalHeight = img.naturalHeight || img.height || 600;
+
+        clonedImg.style.width = naturalWidth + 'px';
+        clonedImg.style.height = naturalHeight + 'px';
+        svgContainer.appendChild(clonedImg);
+
+        // Calculate initial zoom to comfortably fit inside viewport with margin/padding
+        const viewportWidth = modalBody.clientWidth - 80;
+        const viewportHeight = modalBody.clientHeight - 80;
+        const widthRatio = viewportWidth / (naturalWidth + 64);
+        const heightRatio = viewportHeight / (naturalHeight + 64);
+
+        // Fit completely on screen, cap initial scale at 1.0 to prevent pixelation of small images
+        currentZoom = Math.min(widthRatio, heightRatio, 1.0);
+        if (currentZoom < 0.2) currentZoom = 0.2; // Absolute minimum floor scale
+
+        updateZoomUI();
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        // Auto center scroll position
+        setTimeout(() => {
+          modalBody.scrollLeft = (modalBody.scrollWidth - modalBody.clientWidth) / 2;
+          modalBody.scrollTop = (modalBody.scrollHeight - modalBody.clientHeight) / 2;
+        }, 50);
+      }
+
       // Close Modal
       function closeModal() {
         modal.classList.remove('active');
@@ -2136,21 +2222,26 @@ make tf-apply</code></pre>
       });
 
       document.getElementById('modalZoomReset').addEventListener('click', () => {
-        const originalSvg = svgContainer.querySelector('svg');
-        if (originalSvg) {
+        const activeElement = svgContainer.querySelector('svg, img');
+        if (activeElement) {
           let naturalWidth = 800;
           let naturalHeight = 600;
-          const viewBox = originalSvg.getAttribute('viewBox');
-          if (viewBox) {
-            const parts = viewBox.split(/\s+/);
-            if (parts.length === 4) {
-              naturalWidth = parseFloat(parts[2]);
-              naturalHeight = parseFloat(parts[3]);
+          if (activeElement.tagName.toLowerCase() === 'svg') {
+            const viewBox = activeElement.getAttribute('viewBox');
+            if (viewBox) {
+              const parts = viewBox.split(/\s+/);
+              if (parts.length === 4) {
+                naturalWidth = parseFloat(parts[2]);
+                naturalHeight = parseFloat(parts[3]);
+              }
+            } else {
+              const rect = activeElement.getBoundingClientRect();
+              naturalWidth = rect.width || 800;
+              naturalHeight = rect.height || 600;
             }
-          } else {
-            const rect = originalSvg.getBoundingClientRect();
-            naturalWidth = rect.width || 800;
-            naturalHeight = rect.height || 600;
+          } else { // img
+            naturalWidth = activeElement.naturalWidth || activeElement.width || 800;
+            naturalHeight = activeElement.naturalHeight || activeElement.height || 600;
           }
 
           const viewportWidth = modalBody.clientWidth - 80;
