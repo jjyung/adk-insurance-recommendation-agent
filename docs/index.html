@@ -176,7 +176,8 @@
       flex: 1;
       min-width: 0;
       padding: 40px 48px 80px;
-      max-width: 900px;
+      max-width: 1000px;
+      margin: 0 auto;
     }
 
     /* Step Section */
@@ -539,6 +540,122 @@
       line-height: 1.7;
       background: var(--color-surface);
     }
+
+    /* =======================================================
+       Mermaid SVG Custom Styling (Corporate Tech Blue Theme)
+       ======================================================= */
+    .mermaid-svg svg {
+      font-family: var(--font-body) !important;
+      background: #f8f9fa !important;
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    /* Photographic Shadow Filters for clean depth */
+    .mermaid-svg .node rect,
+    .mermaid-svg .actor,
+    .mermaid-svg .note rect,
+    .mermaid-svg rect.actor {
+      filter: drop-shadow(0px 4px 8px rgba(15, 59, 140, 0.08)) !important;
+      stroke-width: 1.5px !important;
+    }
+
+    /* Corporate Tech Blue Actors (Sequence Diagram) */
+    .mermaid-svg rect.actor,
+    .mermaid-svg .actor {
+      fill: #ffffff !important;
+      stroke: #1a73e8 !important;
+      rx: 8px !important;
+      ry: 8px !important;
+    }
+    .mermaid-svg text.actor-box {
+      font-family: var(--font-heading) !important;
+      font-weight: 500 !important;
+      fill: #1557b0 !important;
+    }
+
+    /* Flowchart Nodes Style (AWS / System Architecture style) */
+    .mermaid-svg .node rect {
+      fill: #ffffff !important;
+      stroke: #1a73e8 !important;
+      rx: 8px !important;
+      ry: 8px !important;
+    }
+    .mermaid-svg .node .label {
+      font-family: var(--font-heading) !important;
+      color: #1557b0 !important;
+      font-weight: 500 !important;
+    }
+
+    /* Notes (Sequence & Flowchart) - soft tech blue note style */
+    .mermaid-svg .note,
+    .mermaid-svg .note rect {
+      fill: #e8f0fe !important;
+      stroke: #1a73e8 !important;
+      rx: 6px !important;
+      ry: 6px !important;
+    }
+    .mermaid-svg .note text {
+      fill: #1557b0 !important;
+      font-family: var(--font-body) !important;
+      font-weight: 500 !important;
+    }
+
+    /* Clean Lines (Edges, Arrows, Lifelines) */
+    .mermaid-svg .messageLine0,
+    .mermaid-svg .messageLine1,
+    .mermaid-svg .loopLine,
+    .mermaid-svg .edgePath .path,
+    .mermaid-svg line {
+      stroke: #1a73e8 !important;
+      stroke-width: 1.5px !important;
+    }
+
+    /* Dotted lifelines */
+    .mermaid-svg .actor-line {
+      stroke: #a1b0cb !important;
+      stroke-dasharray: 4 !important;
+    }
+
+    /* Labels on Arrows / Edges */
+    .mermaid-svg .messageText,
+    .mermaid-svg .edgeLabel,
+    .mermaid-svg .label text {
+      fill: #5f6368 !important;
+      font-family: var(--font-mono) !important;
+      font-size: 13px !important;
+    }
+
+    /* Flowchart Subgraphs (Clusters) - clean background & border */
+    .mermaid-svg .cluster rect {
+      fill: #f0f4f9 !important;
+      stroke: #dadce0 !important;
+      stroke-width: 1.5px !important;
+      stroke-dasharray: 6 !important;
+      rx: 12px !important;
+      ry: 12px !important;
+    }
+    .mermaid-svg .cluster-label text {
+      font-family: var(--font-heading) !important;
+      fill: #1557b0 !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.5px !important;
+    }
+
+    /* rect (Containers/Phases in Sequence Diagrams) - very soft corporate tech blue gradients/colors */
+    .mermaid-svg rect[fill*="240, 248, 255"],
+    .mermaid-svg rect[fill*="245, 245, 245"],
+    .mermaid-svg rect[fill*="255, 250, 240"],
+    .mermaid-svg rect[fill*="255, 240, 245"] {
+      rx: 12px !important;
+      ry: 12px !important;
+      stroke: #dadce0 !important;
+      stroke-width: 1px !important;
+    }
+    .mermaid-svg rect[fill*="240, 248, 255"] { fill: #e8f0fe !important; } /* Phase: Day 0 Bootstrap */
+    .mermaid-svg rect[fill*="245, 245, 245"] { fill: #f1f3f4 !important; } /* Phase: CI PR */
+    .mermaid-svg rect[fill*="255, 250, 240"] { fill: #fef7e0 !important; } /* Phase: CD Staging */
+    .mermaid-svg rect[fill*="255, 240, 245"] { fill: #fce8e6 !important; } /* Phase: CD Production */
 
     /* =====================
        Mermaid Zoom & Restore
