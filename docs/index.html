@@ -1008,6 +1008,14 @@
               >
             </a>
           </li>
+          <li class="codelab-nav__item" data-step="10">
+            <a href="#step-10">
+              <span class="codelab-nav__step-num">10</span>
+              <span class="codelab-nav__step-title"
+                >延伸學習：完整技術棧與生態資源</span
+              >
+            </a>
+          </li>
         </ul>
       </nav>
 
@@ -8430,21 +8438,37 @@ terraform untaint module.agent_infrastructure.google_logging_project_bucket_conf
             </div>
           </details>
 
-          <div class="callout callout-important">
-            <strong>⚠️ 資源釋放與帳單清理提醒 (Dev Sandbox Rollback)：</strong>
-            <p>
-              當你完成雲端沙盒環境測試後，為避免持續產生 Cloud Run 與 Cloud SQL
-              的雲端資源計費，請務必執行銷毀指令清理雲端資源：
-            </p>
-            <pre
-              style="margin-top: 8px; margin-bottom: 0; padding: 10px 16px"
-            ><code class="language-bash">make tf-destroy</code></pre>
-            <em
-              >(本指令已內建 PostgreSQL
-              使用者移除機制，會自動從本地狀態中剔除使用者後再安全進行整機銷毀，避免
-              dependency 報錯)*</em
-            >
-          </div>
+          <h3>六、 第六階段：釋放服務與資源 (Resource Teardown / Clean Up)</h3>
+          <p>
+            當您結束個人開發沙盒（Dev Sandbox）環境測試時，切記執行清理與銷毀指令，釋放 GCP 上的所有代管資源（例如 Cloud Run, Cloud SQL 等），避免持續產生不必要的雲端帳單費用。
+          </p>
+
+          <ol>
+            <li>
+              <strong>銷毀開發環境的所有雲端資源 (Destroy Dev Sandbox Resources)</strong>：
+              <p>
+                在專案根目錄下，執行以下指令以一鍵移除所有由 Terraform 部署的 Dev 資源：
+              </p>
+              <pre><code class="language-bash">make tf-destroy</code></pre>
+              <div class="callout callout-warning">
+                <strong>⚠️ 注意：資料庫資料將會遺失：</strong>
+                <p>
+                  此操作為破壞性指令，會永久刪除 Cloud SQL 執行個體、Cloud Run 服務、Secret Manager 的資料庫密碼，以及與此開發環境相關的所有資料，執行前請確保無重要資料需要保留。
+                </p>
+              </div>
+              <p>
+                <em>自動修復機制：</em>本專案的 <code>make tf-destroy</code> 指令已內建 PostgreSQL 使用者 (Role) 移除的自動修復邏輯。它會先在背景執行 <code>terraform state rm</code> 將可能具有依賴關聯的資料庫使用者從 Terraform State 中剔除，再安全進行整機銷毀，完美避免 <code>role cannot be dropped because some objects depend on it</code> 的 dependency 報錯。
+              </p>
+            </li>
+            <li>
+              <strong>環境重設與再部署 (Redeployment)</strong>：
+              <p>
+                如果您日後需要重新點亮此個人沙盒環境，只需重複執行之前的初始化與套用指令即可：
+              </p>
+              <pre><code class="language-bash">make setup-dev-env
+make gcp-db-setup</code></pre>
+            </li>
+          </ol>
 
           <div class="callout callout-tip">
             <strong>SANDBOX BENEFIT:</strong>
@@ -10708,6 +10732,41 @@ make tf-apply</code></pre>
                 基礎架構中配置了一個 <strong>Cloud Run Job</strong> (<code>db-migration</code>)。當資料庫 Schema 有變更時，您可以直接透過 GCP Web Console 手動執行此 Job，或利用 <code>make gcp-db-setup</code> 指令同步雲端資料庫結構。
               </p>
             </li>
+            <li>
+              <strong>釋放服務與資源 (Resource Teardown &amp; Clean Up)</strong>：
+              <p>
+                在 Staging 或 Production 等正式的多環境架構中，資源的生命週期管理與單獨的 Dev 沙盒不同。當需要完全停用、搬遷或清理 Staging / Production 資源，甚至拆除自動化 CI/CD 管線與 GitHub 連線時，請依序執行以下指令：
+              </p>
+              <ul>
+                <li>
+                  <strong>銷毀特定環境資源 (Staging / Production)</strong>：
+                  <p>
+                    若要單獨移除特定環境的 Cloud Run 服務、Cloud SQL 實例與關聯的網絡，請傳入對應的 <code>ENV_NAME</code>（預設為 dev）：
+                  </p>
+                  <pre><code class="language-bash">make tf-destroy ENV_NAME=staging # 銷毀 Staging 環境資源
+make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹慎！)</code></pre>
+                  <div class="callout callout-important">
+                    <strong>⚠️ 生產環境銷毀警示 (Production Deletion Warning)：</strong>
+                    <p>
+                      在生產環境執行銷毀是具備極高風險且不可逆的行為。Production 環境配置通常會啟用 <code>deletion_protection = true</code> (防誤刪保護)；若需要完全銷毀，必須先手動至 GCP 主控台或在 Terraform 配置中將防誤刪保護關閉後，方能成功執行銷毀。
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <strong>移除跨環境共用 CI/CD 管線基礎設施</strong>：
+                  <p>
+                    若您希望徹底清除本專案建立的 CI/CD 觸發器、GitHub 連線 (Workload Identity Federation) 以及跨環境共用的 Bootstrap 管線，請在專案根目錄下執行：
+                  </p>
+                  <pre><code class="language-bash">make tf-bootstrap-destroy</code></pre>
+                  <div class="callout callout-warning">
+                    <strong>⚠️ 警告：這將移除共用部署管線與 GitHub 連線！</strong>
+                    <p>
+                      執行此命令會永久刪除 OIDC 授權憑證、GitHub App 安全連接以及所有的 Cloud Build 構建觸發器。未來若要重新啟用，必須重新執行 <code>make tf-bootstrap</code> 流程。
+                    </p>
+                  </div>
+                </li>
+              </ul>
+            </li>
           </ul>
 
           <h3>八、 開發者檢查清單 (Developer Checklist)</h3>
@@ -10861,6 +10920,226 @@ make tf-apply</code></pre>
               Edition) | 2026-06-21</em
             >
           </p>
+
+          <div class="codelab-step-nav">
+            <a class="prev" href="#step-8">航向雲端：Staging 部署與 CI/CD 管線</a>
+            <a class="next" href="#step-10"
+              >延伸學習：完整技術棧與生態資源</a
+            >
+          </div>
+        </section>
+
+        <section class="codelab-step" id="step-10">
+          <div class="codelab-step__header">
+            <span class="codelab-step__num">10</span>
+            <h2 class="codelab-step__title">
+              延伸學習：完整技術棧與生態資源
+            </h2>
+          </div>
+          <p>
+            在完成本手冊的各個實戰章節後，你已建構了一套極具現代化架構特徵的
+            GenAI 代理人系統。為了幫助你更上一層樓，以下為本專案所採用的<b>完整技術棧總覽</b>、以及 <b>Google ADK 官方與生態重要資源連結</b>，方便你隨時深入查閱、擴展系統功能或參與社群討論。
+          </p>
+
+          <h3>A. 完整專案技術棧總覽 (Full Tech Stack Overview)</h3>
+          <p>
+            本專案不僅是一個 PoC (概念驗證)，更整合了業界生產環境所需的軟硬體架構，涵蓋前端、後端、Agent 框架及基礎設施等四大核心模組：
+          </p>
+          <table class="codelab-table">
+            <thead>
+              <tr>
+                <th>模組 (Module)</th>
+                <th>使用技術 (Technologies)</th>
+                <th>關鍵實作元件 / 本地對應檔案</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>1. 前端 UI 系統</strong></td>
+                <td>Next.js 15 (App Router) + TypeScript + Vanilla CSS</td>
+                <td>
+                  <ul>
+                    <li>多模態即時 Hooks: <code>useAudioCapture</code>, <code>useLiveAgent</code></li>
+                    <li>波形視覺化: <code>WaveformVisualizer.tsx</code></li>
+                    <li>決策軌跡與狀態: <code>TimelineNodes.tsx</code>, <code>StateTree.tsx</code></li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>2. 後端核心服務</strong></td>
+                <td>FastAPI (Python) + asyncio + JWT Auth + Regex PII Filter</td>
+                <td>
+                  <ul>
+                    <li>WebSocket 串流調度: <code>live_agent_service.py</code></li>
+                    <li>隱私與合規安全: <code>pii.py</code>, <code>auth.py</code></li>
+                    <li>審計日誌與雜湊鏈: <code>audit_log_service.py</code></li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>3. Agent 框架與 RAG</strong></td>
+                <td>Google ADK (<code>google-adk</code>) + MCP (Model Context Protocol) Toolbox + pgvector</td>
+                <td>
+                  <ul>
+                    <li>AI 代理人定義: <code>app/agent.py</code> 與系統提示詞 <code>prompts/</code></li>
+                    <li>MCP 工具集關聯: <code>db/tools.local.yaml</code>, <code>db/tools.cloud.yaml</code></li>
+                    <li>FAQ 向量檢索: <code>scripts/ingest_faq_embeddings.py</code></li>
+                  </ul>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>4. CI/CD 與基礎設施</strong></td>
+                <td>Google Cloud Platform (GCP) + Terraform + Workload Identity (WIF)</td>
+                <td>
+                  <ul>
+                    <li>IaC 基礎設施即代碼: <code>deployment/terraform/</code></li>
+                    <li>自動化發布管線: <code>.cloudbuild/deploy-to-prod.yaml</code></li>
+                    <li>可觀測性與監控: GenAI OpenTelemetry, BigQuery Log Analytics</li>
+                  </ul>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>B. Google ADK &amp; Agent Platform 官方核心資源</h3>
+          <p>
+            <strong>Agent Development Kit (ADK)</strong> 是 Google Cloud Platform 官方推出的開源、代碼優先 (code-first) 的 AI 代理人開發框架，專為構建、評估和部署企業級多代理人系統而設計。
+          </p>
+          <ul>
+            <li>
+              🌐 <strong>ADK 官方文檔門戶 (Documentation Portal)</strong>：
+              <a href="https://adk.dev" target="_blank">adk.dev</a> - 包含最完整的概念說明、最新版本發布說明與多語言 SDK 起手步。
+            </li>
+            <li>
+              🚀 <strong>快速入門指引 (Get Started)</strong>：
+              <a href="https://adk.dev/get-started/index.md" target="_blank">ADK Get Started</a> - 從零開始安裝並跑通你的第一個 Agent。
+            </li>
+            <li>
+              🐍 <strong>Python SDK 深入指南 (Python Developer Guide)</strong>：
+              <a href="https://adk.dev/get-started/python/index.md" target="_blank">ADK Python Guide</a> - 提供 Python SDK 的安裝、API 架構與最佳實踐說明。
+            </li>
+            <li>
+              🎙️ <strong>Gemini Live API 雙向串流 (Gemini Live API Streaming)</strong>：
+              <a href="https://adk.dev/streaming/index.md" target="_blank">ADK Streaming Guide</a> - 低延遲、雙向語音與影格同步多模態對話的底層技術細節。
+            </li>
+            <li>
+              📊 <strong>科學化 Agent 評估 (Agent Evaluation)</strong>：
+              <a href="https://adk.dev/evaluate/index.md" target="_blank">ADK Evaluate Portal</a> - 指標制定、自定義 Evals 以及 LLM-as-a-Judge 自動打分框架。
+            </li>
+          </ul>
+
+          <h3>C. Agent CLI (agents-cli) 與部署工具</h3>
+          <p>
+            透過命令行工具，你可以流暢地完成從地端 Sandbox 執行、指標評估，到一鍵雲端託管的完整流程。
+          </p>
+          <ul>
+            <li>
+              💻 <strong>Agent CLI (agents-cli) 命令手冊</strong>：
+              <a href="https://adk.dev/deploy/agent-runtime/agents-cli/index.md" target="_blank">agents-cli Documentation</a> - 包含 <code>scaffold</code>、<code>eval</code>、<code>deploy</code>、<code>publish</code> 等關鍵 CLI 命令參考。
+            </li>
+            <li>
+              ⚙️ <strong>執行期配置與 Sandbox 設定 (Runtime Config)</strong>：
+              <a href="https://adk.dev/runtime/runconfig/index.md" target="_blank">ADK RunConfig 指引</a> - 教你如何設定對應的 <code>RunConfig</code>、Event Loop 以及 Session 狀態。
+            </li>
+            <li>
+              ☁️ <strong>部署至 Cloud Run / GKE 託管環境</strong>：
+              <a href="https://adk.dev/deploy/index.md" target="_blank">ADK Deployment Portal</a> - 手把手教你如何將 ADK 代理人安全打包，部署至 Google Cloud Platform 上。
+            </li>
+          </ul>
+
+          <h3>D. 開源儲存庫與核心參考資源對照表 (Core Reference Resources)</h3>
+          <p>
+            為便於企業落地，Google 官方提供了多種腳手架（Scaffolding）與即用型的樣板專案。以下為專案核心參考資源與 GitHub 程式碼檢視層連結對照表：
+          </p>
+          <table class="codelab-table">
+            <thead>
+              <tr>
+                <th>資源名稱 (Resource)</th>
+                <th>類型 (Type)</th>
+                <th>GitHub 連結層 (GitHub Link Portal)</th>
+                <th>說明 (Description)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>agent-starter-pack 儲存庫</strong></td>
+                <td>📦 開源儲存庫</td>
+                <td>
+                  <a href="https://github.com/GoogleCloudPlatform/agent-starter-pack" target="_blank">
+                    GoogleCloudPlatform/agent-starter-pack
+                  </a>
+                </td>
+                <td>企業級 AI Agent 起手包，封裝了 Terraform、Cloud Build CI/CD、OpenTelemetry Tracing 儀表板，是本專案的最佳延伸實戰藍本。</td>
+              </tr>
+              <tr>
+                <td><strong>agents-cli 儲存庫</strong></td>
+                <td>📦 開源工具儲存庫</td>
+                <td>
+                  <a href="https://github.com/google/agents-cli" target="_blank">
+                    google/agents-cli
+                  </a>
+                </td>
+                <td>Google 官方推出的 AI Agents 命令行管理工具原始碼，支援 Agent 與 Tool 腳手架建立、本地評估與一鍵部署托管。</td>
+              </tr>
+              <tr>
+                <td><strong>ADK Cheatsheet (極速查手冊)</strong></td>
+                <td>📜 快速查閱手冊</td>
+                <td>
+                  <a href="https://github.com/GoogleCloudPlatform/agent-starter-pack/blob/main/agent_starter_pack/resources/docs/adk-cheatsheet.md" target="_blank">
+                    adk-cheatsheet.md (GitHub)
+                  </a>
+                </td>
+                <td>快速查詢 Agent 定義、Tool/Callback 宣告與 Orchestration 程式碼。</td>
+              </tr>
+              <tr>
+                <td><strong>ADK Evaluation Guide (評估深度指南)</strong></td>
+                <td>📈 評估與指標手冊</td>
+                <td>
+                  <a href="https://github.com/GoogleCloudPlatform/agent-starter-pack/blob/main/agent_starter_pack/resources/docs/adk-eval-guide.md" target="_blank">
+                    adk-eval-guide.md (GitHub)
+                  </a>
+                </td>
+                <td>指標打分、環境模擬與 User Simulation 的深度解密。</td>
+              </tr>
+              <tr>
+                <td><strong>ADK Deployment Guide (生產部署指南)</strong></td>
+                <td>🏗️ 部署與 IaC 指南</td>
+                <td>
+                  <a href="https://github.com/GoogleCloudPlatform/agent-starter-pack/blob/main/agent_starter_pack/resources/docs/adk-deploy-guide.md" target="_blank">
+                    adk-deploy-guide.md (GitHub)
+                  </a>
+                </td>
+                <td>WIF 安全配置、CI/CD 觸發器與 Secret Manager 整合的最佳實踐。</td>
+              </tr>
+              <tr>
+                <td><strong>ADK Development Guide (開發流程指南)</strong></td>
+                <td>💻 開發與最佳實踐</td>
+                <td>
+                  <a href="https://github.com/GoogleCloudPlatform/agent-starter-pack/blob/main/docs/guide/development-guide.md" target="_blank">
+                    development-guide.md (GitHub)
+                  </a>
+                </td>
+                <td>完整開發工作流、開發階段指引與最佳實踐說明。</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout-tip">
+            <strong>ARCHITECTURE &amp; ECOSYSTEM REFLECTION:</strong>
+            <p>
+              掌握開源框架、靈活調度生態資源（如 MCP、ADK Evals、WIF 憑證模擬），是將 AI 原型（PoC）轉化為安全可維護之生產系統的必經之路。隨著 Gemini 3 以及 ADK 2.0+ 的持續演進，期待你能運用這些工具與資源，在雲端開拓出更多充滿想像空間的保險（甚至跨行業）AI 代理應用！
+            </p>
+          </div>
+
+          <hr />
+          <p>
+            <em>文件維護：lastingyeh (Chris) | 版本：v2.1 (Instructor & Architect Edition) | 2026-06-21</em>
+          </p>
+
+          <div class="codelab-step-nav">
+            <a class="prev" href="#step-9">結語：技術總結</a>
+            <span></span>
+          </div>
         </section>
       </main>
     </div>
