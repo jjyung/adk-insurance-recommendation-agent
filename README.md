@@ -17,8 +17,9 @@
 本專案聚焦在「高可追溯、可信賴、安全受控」的保險科技 (InsurTech) 推薦流程與對話體驗，展現如何使用最新的生成式 AI 與 Agent 技術建構生產級的智慧代理系統。
 
 ---
-
 ## 專案核心目標與商業場景
+[🔗 實作實驗室 code labs ➡ https://lastingyeh.github.io/adk-insurance-recommendation-agent/](https://lastingyeh.github.io/adk-insurance-recommendation-agent/)
+
 
 1. **精準追問與需求釐清 (Proactive Clarification)**：當使用者輸入的需求不足（如未提供年齡、保障目標、保費預算）時，Agent 能夠在多輪對話中，依據引導策略主動、自然地進行精準追問，不進行盲目推薦。
 2. **受控且安全的資料庫查詢 (Controlled Database Query)**：透過 MCP Toolbox 執行嚴格受控制的 SQL Templates，避免 LLM 自由生成 SQL 語法導致的 SQL Injection 漏洞、資料庫負載過高或幻覺產生的錯誤推薦。
@@ -27,7 +28,7 @@
 5. **不可篡改的安全稽核與 PII 脫敏 (Security & Compliance)**：在數據進出 LLM 及 Audit Log 前，即時識別並脫敏 Email、電話、身分證等個人資訊；日誌採用雜湊鏈加密，確保存證能完整被核。
 6. **嚴謹的 AI 回歸評估 (Evaluation-Driven Development)**：內建多套測試集 (Evalsets)，將評估融入開發循環，確保 Prompt 調優與工具增減不會造成系統能力衰退。
 
----
+
 
 ## 系統架構設計
 
