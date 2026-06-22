@@ -1004,7 +1004,7 @@
             <a href="#step-9">
               <span class="codelab-nav__step-num">9</span>
               <span class="codelab-nav__step-title"
-                >結語：技術總結與架構師的提醒</span
+                >結語：技術總結</span
               >
             </a>
           </li>
@@ -1204,6 +1204,19 @@ make db-ingest # 執行 FAQ 知識庫向量化匯入 (gemini-embedding-001)</cod
                 等資料表，並確認資料表中已成功寫入測試資料與 FAQ 向量嵌入資料。
               </li>
             </ol>
+          </div>
+
+          <!-- RAG Runtime Query Sequence Flow Diagram -->
+          <div class="callout callout-note">
+            <strong>RAG RUNTIME FLOW (RAG 執行期檢索流程):</strong>
+            <p>
+              當本地資料庫與 FAQ 知識庫向量化順利完成後，系統便具備了語意檢索能力。下圖展示了當使用者提出保險觀念疑問（例如：「保單等待期是什麼？」）時，後端如何利用 <strong>Model Context Protocol (MCP)</strong> 架構，安全協調 <strong>MCP Toolbox</strong>、<strong>Vertex AI Embedding API</strong> 與 <strong>PostgreSQL pgvector</strong> 進行即時 RAG 語意搜尋：
+            </p>
+          </div>
+
+          <div class="codelab-img-wrapper">
+            <img src="images/pgvector.png" alt="MCP Toolbox + PostgreSQL pgvector 搜尋流程 Sequence Diagram" />
+            <div class="codelab-img-caption">圖 2.1: MCP Toolbox + PostgreSQL pgvector 搜尋流程時序圖</div>
           </div>
 
           <h3>D. 本地偵錯、開發與 Playground</h3>
@@ -10369,67 +10382,129 @@ terraform untaint module.agent_infrastructure.google_logging_project_bucket_conf
             </tbody>
           </table>
 
-          <h3>三、 首次部署「冷啟動 (Cold Start)」與資料庫初始化</h3>
+          <h3>三、 CI/CD 前置準備 (Phase 0: Bootstrapping)</h3>
           <p>
-            在自動化 CI/CD
-            觸發器接管之前，<strong>必須手動執行一次初始部署</strong>，用以建立
-            Artifact Registry 等核心依賴。忽略此步驟將導致 Cloud Build
-            管線因找不到遠端映像檔與狀態檔而報錯：
+            在啟動 CI/CD 流程之前，必須確保 GCP 雲端環境與自動化流水線所需的基礎設施已準備就緒：
           </p>
           <ol>
             <li>
-              <strong>設定專案與環境變數</strong>：
-              <p>調整根目錄的 <code>.env</code> 檔案：</p>
+              <strong>環境隔離與 GCP 專案建立</strong>：
+              <p>
+                為達到完備的環境隔離，建議至少準備三個獨立的 GCP 專案：
+              </p>
+              <ul>
+                <li><code>your-dev-project-id</code> (開發/個人沙盒環境)</li>
+                <li><code>your-staging-project-id</code> (測試/驗收環境)</li>
+                <li><code>your-prod-project-id</code> (生產/正式運行環境)</li>
+              </ul>
+            </li>
+            <li>
+              <strong>部署 CI/CD 基礎設施 (Bootstrap)</strong>：
+              <p>
+                我們提供了專屬的 Terraform 配置與自動化腳本來建立 Cloud Build 觸發器與 GitHub 連線：
+              </p>
+              <ul>
+                <li>
+                  <strong>使用 Makefile 部署（推薦）</strong>：
+                  <p>
+                    請確認 <code>.env</code> 檔案中已正確設定 <code>GITHUB_OWNER</code> 與 <code>GITHUB_REPO_NAME</code>，接著於根目錄執行：
+                  </p>
+                  <pre><code class="language-bash">make tf-bootstrap</code></pre>
+                  <div class="callout callout-note">
+                    <strong>GITHUB 授權提示 (AUTHORIZATION HINT):</strong>
+                    <p>
+                      此指令會自動引導您建立 GCP 與 GitHub 之間的連線。<strong>若是首次建立連線，終端機將會暫停並提供一個授權網址</strong>。請複製該網址至瀏覽器完成 GitHub 授權，腳本會自動偵測授權完成並繼續執行後續的 Terraform 部署。
+                    </p>
+                  </div>
+                </li>
+                <li>
+                  <strong>手動執行部署（進階）</strong>：
+                  <p>
+                    如果您不希望使用 Makefile，可以手動執行腳本建立連線：
+                  </p>
+                  <pre><code class="language-bash">bash scripts/setup_github_conn.sh</code></pre>
+                  <p>
+                    完成授權後，再切換至 bootstrap 目錄執行 Terraform：
+                  </p>
+                  <pre><code class="language-bash">cd deployment/terraform/bootstrap
+terraform init
+terraform apply \
+  -var="project_id=your-dev-project-id" \
+  -var="github_owner=your-github-handle" \
+  -var="github_repo_name=insurance-recommendation-agent-auth"</code></pre>
+                </li>
+              </ul>
+            </li>
+            <li>
+              <strong>準備遠端 Terraform State 儲存桶</strong>：
+              <p>
+                各環境（dev, staging, prod）需要遠端雲端儲存桶來管理狀態檔。使用一鍵指令快速生成設定：
+              </p>
+              <pre><code class="language-bash">make tf-gen-config</code></pre>
+              <p>
+                <em>(此指令會根據 <code>.env</code> 的 GCP_PROJECT_ID，自動在 GCP 建立專屬的 Terraform State Bucket，並生成各環境對應的 <code>.tfbackend</code> 設定檔。)</em>
+              </p>
+            </li>
+          </ol>
+
+          <h3>四、 首次部署「冷啟動 (Cold Start)」與資料庫初始化</h3>
+          <p>
+            在自動化 CI/CD 觸發器接管之前，<strong>必須手動執行一次初始部署（Cold Start）</strong>，用以建立 Artifact Registry 儲存庫、遠端 State Bucket 並初始化雲端資源。<strong>這一步是不可省略的，否則後續 CI/CD 會因缺乏資源與遠端狀態而失敗或產生重複的 Cloud SQL 實體。</strong>
+          </p>
+          <ol>
+            <li>
+              <strong>設定環境變數</strong>：
+              <p>修改根目錄的 <code>.env</code> 檔案：</p>
               <pre><code class="language-bash">GCP_PROJECT_ID=your-staging-project-id
 ENV_NAME=staging</code></pre>
             </li>
             <li>
-              <strong>建立遠端狀態桶（Terraform State Bucket）</strong>：
-              <pre><code class="language-bash">make tf-gen-config # 建立對應環境的專屬遠端 State Bucket 並動態產出 tfbackend 配置</code></pre>
+              <strong>建立遠端狀態儲存桶 (極重要)</strong>：
+              <p>
+                <strong>務必執行此步驟</strong>，確保本地與未來的 Cloud Build 使用相同的 Terraform 狀態，防止重複建立資料庫：
+              </p>
+              <pre><code class="language-bash">make tf-gen-config</code></pre>
             </li>
             <li>
-              <strong>建置並推送初始冷啟動映像檔</strong>：
-              <pre><code class="language-bash">make build-push # 建立 AR 儲存庫並推送初始 Backend、Frontend 及 Toolbox Image</code></pre>
+              <strong>建置並推送初始映像檔</strong>：
+              <pre><code class="language-bash">make build-push</code></pre>
             </li>
             <li>
-              <strong>初始化並部署 Staging 基礎設施</strong>：
+              <strong>初始化並部署基礎架構</strong>：
+              <p>這會自動讀取步驟 2 建立的遠端配置：</p>
               <pre><code class="language-bash">make tf-init
 make tf-apply</code></pre>
             </li>
             <li>
-              <strong>雲端資料庫一鍵初始化</strong>：
-              <pre><code class="language-bash">make gcp-db-setup # 在背景安全建立 Proxy、寫入 Schema、匯入 Seed 並執行 FAQ 向量化</code></pre>
+              <strong>初始化資料庫結構與 FAQ 向量化 (Schema &amp; Seed)</strong>：
+              <p>我們透過 Cloud Run Job 或本地指令進行初始化：</p>
+              <pre><code class="language-bash">make gcp-db-setup</code></pre>
             </li>
           </ol>
           <div class="callout callout-warning">
             <strong>ORPHAN DATABASE CLEANUP:</strong>
             <p>
-              如果在學習與頻繁重新部署過程中產生了孤兒（Orphaned）資料庫實例，可以使用
-              <code>make gcp-cleanup-orphans</code>
-              輔助列出並一鍵清除，避免產生額外雲端帳單費用。
+              如果在學習、測試或重複部署過程中操作不當（如未同步狀態檔），導致 GCP 上產生了多個名稱類似的孤兒（Orphaned）Cloud SQL 實體，可以使用 
+              <code>make gcp-cleanup-orphans</code> 
+              輔助列出並一鍵清除多餘資源，避免產生額外雲端帳單費用。
             </p>
           </div>
 
-          <h3>四、 工作負載身分同盟 (Workload Identity Federation, WIF)</h3>
+          <h3>五、 工作負載身分同盟 (Workload Identity Federation, WIF)</h3>
           <p>
-            為避免使用含有高度安全洩漏風險的靜態 GCP 服務帳戶私鑰金鑰檔
-            (.json)，專案整合了
-            <strong>OIDC (OpenID Connect) WIF 技術</strong>：
+            為避免使用含有高度安全洩漏風險的靜態 GCP 服務帳戶私鑰金鑰檔 (.json)，專案整合了 <strong>OIDC (OpenID Connect) WIF 技術</strong>：
           </p>
           <ul>
             <li>
               <strong>建立 Identity Pool 與 Provider</strong>：
               <p>
-                在 CI 主專案中執行 gcloud 註冊 <code>github-pool</code> 與
-                <code>github-provider</code>，並將 attribute 對應至 GitHub
-                Repository 屬性。
+                在 CI 主專案中執行 gcloud 註冊 <code>github-pool</code> 與 <code>github-provider</code>，並將 attribute 對應至 GitHub Repository 屬性。
               </p>
             </li>
             <li>
               <strong>無私鑰身分模擬 (Service Account Impersonation)</strong>：
               <p>
-                模擬 <code>cicd-runner</code> 服務帳號。此 runner SA 在 Staging
-                與 Production 專案中被授予遵循最小特權原則的安全性角色：
+                模擬 <code>cicd-runner</code> 服務帳號。此 runner SA 在 Staging 與 Production 專案中被授予遵循最小特權原則的安全性角色：
               </p>
               <ul>
                 <li><code>roles/run.admin</code> (Cloud Run 管理)</li>
@@ -10440,52 +10515,66 @@ make tf-apply</code></pre>
               </ul>
             </li>
           </ul>
+          <div class="callout callout-tip">
+            <strong>WIF SETUP DOCUMENTATION:</strong>
+            <p>
+              若欲了解 Workload Identity Federation (WIF) 的詳細原理與完整設定步驟，請參考專案目錄下的 <code>deployment/docs/wif-setup.md</code>。
+            </p>
+          </div>
 
-          <h3>五、 CI/CD 觸發器與晉升政策 (Promotion Policy)</h3>
+          <h3>六、 CI/CD 觸發器與晉升政策 (Promotion Policy)</h3>
           <ol>
             <li>
-              <strong>持續整合 (PR 階段 - <code>pr_checks.yaml</code>)</strong
-              >：
+              <strong>持續整合 (PR 階段 - <code>.cloudbuild/pr_checks.yaml</code>)</strong>：
               <p>
-                開發者發起 PR 時觸發。全自動執行
-                <code>make lint</code> (代碼格式)、<code>make test</code>
-                (非同步測試) 並且在 Staging/Prod 目錄下執行
-                <code>terraform plan</code> 以利同僚進行架構異動代碼評審。
+                針對所有 Pull Request 執行。任務包含代碼檢查 (Linting)、單元與整合測試 (Unit Tests)、Terraform Plan (預覽基礎架構變更)，確保基礎架構變更安全並利於同僚審查。
               </p>
             </li>
             <li>
-              <strong
-                >Staging 環境部署 (合併 main -
-                <code>staging.yaml</code>)</strong
-              >：
+              <strong>Staging 環境部署 (合併 main - <code>.cloudbuild/staging.yaml</code>)</strong>：
               <p>
-                PR 核准合併至 <code>main</code> 分支後觸發。自動以 Commit SHA
-                為標記建置並推送映像檔，完成 Staging 資源套用。最後<b
-                  >自動執行 ADK 品質評估 <code>make eval-all</code></b
-                >，若 AI 指標（如 PII 合規、推薦正確度）未達標準，將阻斷晉升。
+                當代碼合併至 <code>main</code> 分支時觸發。任務包含：建置 Docker 映像檔（以 Commit SHA 為標記）、推送到 Artifact Registry、更新 Staging 環境基礎架構、最後<strong>自動執行部署後評估 (ADK Eval - <code>make eval-all</code>)</strong>。若 AI 評估指標（如 PII 合規、推薦正確度）未達標準，管線將自動中斷。
               </p>
             </li>
             <li>
-              <strong
-                >Prod 生產環境發布 (建立 Git Tag -
-                <code>deploy-to-prod.yaml</code>)</strong
-              >：
+              <strong>Prod 生產環境發布 (建立 Git Tag - <code>.cloudbuild/deploy-to-prod.yaml</code>)</strong>：
               <p>
-                Staging 驗收無誤後，管理員在 GitHub 建立版本標籤（如
-                <code>v1.0.0</code>）時觸發。管線不會重新 Build，而是<strong
-                  >直接 Retag (晉升) Staging 映像檔為生產版
-                  <code>prod-latest</code></strong
-                >，確保代碼具備絕對的一致性；並執行
-                <code>terraform apply</code> 套用高可用 (High Availability)
-                生產配置（如開啟 DB 複本與啟用 Deletion Protection）。
+                當建立 Git Tag（如 <code>v1.0.0</code>）時觸發。任務包含：<strong>將 Staging 映像檔標記 (Retag) 為生產版本 <code>prod-latest</code></strong>（避免重新編譯、確保代碼絕對一致性）、更新 Production 環境基礎架構（<code>deployment/terraform/prod</code>），生產環境預設開啟高可用（High Availability）配置，如更高級別的 DB Tier 與 Deletion Protection。
               </p>
             </li>
           </ol>
 
+          <h3>七、 維運與管理 (Operations &amp; Migration)</h3>
+          <ul>
+            <li>
+              <strong>秘密管理 (Secret Management)</strong>：
+              <p>
+                資料庫密碼、API Keys 等敏感資訊皆儲存在 <strong>GCP Secret Manager</strong>。Terraform 自動生成的密碼會同步寫入 Secret，並僅授權給具有最小權限的 Cloud Run 服務進行存取。
+              </p>
+            </li>
+            <li>
+              <strong>資料庫遷移 (DB Migration)</strong>：
+              <p>
+                基礎架構中配置了一個 <strong>Cloud Run Job</strong> (<code>db-migration</code>)。當資料庫 Schema 有變更時，您可以直接透過 GCP Web Console 手動執行此 Job，或利用 <code>make gcp-db-setup</code> 指令同步雲端資料庫結構。
+              </p>
+            </li>
+          </ul>
+
+          <h3>八、 開發者檢查清單 (Developer Checklist)</h3>
+          <p>
+            在將代碼發送至 Staging 或生產環境之前，請確保以下檢核點均已完成：
+          </p>
+          <ul class="checklist">
+            <li>✅ <strong>環境變數</strong>：<code>.env</code> 檔案中的 <code>ENV_NAME</code> 已正確設定。</li>
+            <li>✅ <strong>Terraform 狀態</strong>：已執行 <code>make tf-gen-config</code> 生成正確的 backend 配置。</li>
+            <li>✅ <strong>CI/CD 觸發器</strong>：已執行 <code>make tf-bootstrap</code> (或手動腳本) 順利建立 CI/CD 觸發器與 GitHub 連線。</li>
+            <li>✅ <strong>本地測試與評估</strong>：在本地已通過 <code>make test</code> 與 <code>make eval</code>，確認 AI 指標符合標準。</li>
+          </ul>
+
           <div class="codelab-step-nav">
             <a class="prev" href="#step-7">個人沙盒環境：Dev 部署</a>
             <a class="next" href="#step-9"
-              >結語：技術總結與架構師的提醒</a
+              >結語：技術總結</a
             >
           </div>
         </section>
@@ -10494,7 +10583,7 @@ make tf-apply</code></pre>
           <div class="codelab-step__header">
             <span class="codelab-step__num">9</span>
             <h2 class="codelab-step__title">
-              結語：技術總結與架構師的提醒
+              結語：技術總結
             </h2>
           </div>
           <p>👋 恭喜你完成了這份保險推薦 Agent 的全生命週期開發手冊！</p>
