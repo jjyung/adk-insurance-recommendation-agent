@@ -2,6 +2,8 @@
 
 這是一個以 Google ADK 為核心的保險推薦 Agent 範例專案。系統整合 FastAPI、Next.js、MCP Toolbox、PostgreSQL/pgvector 與 Gemini/Vertex AI，示範如何建立具備產品查詢、FAQ 語意搜尋、會話記憶、稽核紀錄、PII 保護，以及即時語音/影像互動能力的 AI Agent。
 
+👉 **線上展示專案：[https://lastingyeh.github.io/adk-insurance-recommendation-agent/](https://lastingyeh.github.io/adk-insurance-recommendation-agent/)**
+
 這份 README 的目標是讓使用者快速完成三件事：
 
 1. 了解這個專案解決什麼問題。
