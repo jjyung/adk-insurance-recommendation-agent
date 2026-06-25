@@ -19,6 +19,116 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <!-- Pre-compiled Static SVGs for zero runtime overhead & crisp scaling -->
     <style>
+      /* GitHub 原始碼連結（包覆 <code> 與 SVG 圖表標籤） */
+      a.gh-src {
+        text-decoration: none;
+        cursor: pointer;
+      }
+      /* hover：整個 code 框一起變色（邊框轉藍、淡藍底），與框框一體 */
+      a.gh-src code {
+        transition:
+          background 0.12s,
+          border-color 0.12s,
+          color 0.12s;
+      }
+      a.gh-src:hover code {
+        background: var(--color-note);
+        border-color: var(--color-primary);
+        color: var(--color-primary-dark);
+      }
+      /* 內文連結加上 ↗ 提示可點 */
+      a.gh-src::after {
+        content: "↗";
+        font-size: 0.7em;
+        vertical-align: super;
+        margin-left: 1px;
+        color: var(--color-primary);
+      }
+      a.gh-src:hover::after {
+        color: var(--color-primary-dark);
+      }
+      /* 程式碼區塊內的 make 連結：無箭頭，hover 顯示底線（無 code 框） */
+      .codelab-step pre a.gh-src::after {
+        content: none;
+      }
+      .codelab-step pre a.gh-src:hover {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+      /* SVG 圖表內的連結不加箭頭 */
+      svg a.gh-src::after {
+        content: none;
+      }
+      /* 可點擊的章節標題（外部連結，保留標題感 + ↗ 提示） */
+      a.title-link {
+        color: inherit;
+        text-decoration: none;
+      }
+      a.title-link:hover {
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 4px;
+      }
+      a.title-link::after {
+        content: "↗";
+        font-size: 0.55em;
+        vertical-align: super;
+        margin-left: 4px;
+        color: var(--color-primary);
+      }
+
+      /* 一列多顆「在 GitHub 查看」按鈕 */
+      .gh-btn-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin: 4px 0 18px;
+      }
+      /* 標題與「在 GitHub 查看」按鈕同列 */
+      .gh-head-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin: 24px 0 8px;
+      }
+      .codelab-step .gh-head-row h3,
+      .codelab-step .gh-head-row h4 {
+        margin: 0;
+      }
+      a.gh-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 16px;
+        background: var(--color-primary);
+        color: #fff;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        text-decoration: none;
+        transition:
+          background 0.15s,
+          box-shadow 0.15s;
+      }
+      a.gh-btn:hover {
+        background: var(--color-primary-dark);
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+      }
+      a.gh-btn svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+        flex-shrink: 0;
+      }
+      a.gh-btn code {
+        font-family: var(--font-mono);
+        background: rgba(255, 255, 255, 0.18);
+        padding: 1px 6px;
+        border-radius: 4px;
+        border-bottom: none;
+      }
       /* =====================
        CSS Reset & Variables
        ===================== */
@@ -281,6 +391,26 @@
         color: #c0392b;
         white-space: normal;
         word-break: break-word;
+      }
+
+      /* 帶讀順序表：加寬檔名欄、避免長檔名 code 被擠成斷行碎片 */
+      .reading-order td {
+        vertical-align: top;
+      }
+      .reading-order th:nth-child(1),
+      .reading-order td:nth-child(1) {
+        width: 34%;
+      }
+      .reading-order th:nth-child(2),
+      .reading-order td:nth-child(2) {
+        width: 18%;
+      }
+      .reading-order td:nth-child(1) code {
+        white-space: nowrap;
+      }
+      .reading-order td:nth-child(1) a.gh-src {
+        display: inline-block;
+        line-height: 2.1;
       }
 
       /* Code blocks */
@@ -1375,8 +1505,8 @@
             <li>
               <strong>後端服務 (FastAPI + Google ADK)</strong>：基於
               <code>google-adk</code> 框架封裝 Agent 實例（定義於
-              <code>app/agent.py</code> 搭配系統提示詞
-              <code>prompts/insurance_agent_prompt.txt</code>），全站採用非同步
+              <a class="gh-src" href="blob/main/app/agent.py" target="_blank" rel="noopener"><code>app/agent.py</code></a> 搭配系統提示詞
+              <a class="gh-src" href="blob/main/app/prompts/insurance_agent_prompt.txt" target="_blank" rel="noopener"><code>prompts/insurance_agent_prompt.txt</code></a>），全站採用非同步
               <code>asyncio</code> 驅動。
             </li>
             <li>
@@ -1386,7 +1516,22 @@
             </li>
           </ol>
 
-          <h3>B. 前後端模組與 UI 元件設計</h3>
+          <div class="gh-head-row">
+            <h3>B. 前後端模組與 UI 元件設計</h3>
+            <a
+              class="gh-btn"
+              href="blob/main/docs/features/frontend.md"
+              target="_blank"
+              rel="noopener"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                />
+              </svg>
+              在 GitHub 查看 <code>frontend.md</code>
+            </a>
+          </div>
           <ul>
             <li>
               <strong>多模態即時 Hooks</strong>：
@@ -1435,7 +1580,13 @@
           <div class="codelab-step__header">
             <span class="codelab-step__num">2</span>
             <h2 class="codelab-step__title">
-              第一站：地端環境啟動 (Local Development)
+              <a
+                class="title-link"
+                href="blob/main/docs/features/development-execution.md"
+                target="_blank"
+                rel="noopener"
+                >第一站：地端環境啟動 (Local Development)</a
+              >
             </h2>
           </div>
           <p>
@@ -1445,7 +1596,7 @@
           <h3>A. 環境變數配置 (.env)</h3>
           <p>
             在安裝依賴與啟動服務之前，必須先建立並設定本地環境變數。請將專案根目錄下的
-            <code>.env.example</code> 複製一份並命名為 <code>.env</code>：
+            <a class="gh-src" href="blob/main/.env.example" target="_blank" rel="noopener"><code>.env.example</code></a> 複製一份並命名為 <code>.env</code>：
           </p>
           <pre><code class="language-bash">cp .env.example .env</code></pre>
           <p>
@@ -1493,7 +1644,7 @@ make db-ingest # 執行 FAQ 知識庫向量化匯入 (gemini-embedding-001)</cod
             <strong>DATABASE TIP:</strong>
             <p>
               如果你想快速清除並重新執行完整的
-              Init/Seed/Ingest，可以一鍵執行：<code>make db-reset</code>。
+              Init/Seed/Ingest，可以一鍵執行：<a class="gh-src" href="blob/main/Makefile#L165" target="_blank" rel="noopener"><code>make db-reset</code></a>。
             </p>
           </div>
 
@@ -1570,7 +1721,7 @@ make ui-dev       # 啟動 Next.js 網頁 (Port 3000)</code></pre>
             <li>
               <strong>VS Code 斷點除錯</strong>：
               <p>
-                使用 <code>make debug-fastapi</code> 啟動帶有
+                使用 <a class="gh-src" href="blob/main/.vscode/launch.json" target="_blank" rel="noopener"><code>make debug-fastapi</code></a> 啟動帶有
                 <code>debugpy</code> 偵錯器支援的後端，讓你可以隨時在 VS Code
                 中下中斷點，追蹤 AI 推理的即時變數狀態。
               </p>
@@ -1578,7 +1729,7 @@ make ui-dev       # 啟動 Next.js 網頁 (Port 3000)</code></pre>
             <li>
               <strong>ADK Streamlit Playground</strong>：
               <p>
-                執行 <code>make playground</code> 啟動 ADK 內建的 Web
+                執行 <a class="gh-src" href="blob/main/Makefile#L603" target="_blank" rel="noopener"><code>make playground</code></a> 啟動 ADK 內建的 Web
                 互動沙盒，用最直覺的 GUI 即時驗證 Agent 的工具呼叫、Prompt
                 約束以及模型生成結果。
               </p>
@@ -1623,9 +1774,24 @@ make ui-dev       # 啟動 Next.js 網頁 (Port 3000)</code></pre>
             </li>
           </ul>
 
-          <h4>2. Docker Compose 服務清單與埠號對照</h4>
+          <div class="gh-head-row">
+            <h4>2. Docker Compose 服務清單與埠號對照</h4>
+            <a
+              class="gh-btn"
+              href="blob/main/docker-compose.yml"
+              target="_blank"
+              rel="noopener"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                />
+              </svg>
+              在 GitHub 查看 <code>docker-compose.yml</code>
+            </a>
+          </div>
           <p>
-            在執行 <code>make up</code> 後，系統會拉起以下 4
+            在執行 <a class="gh-src" href="blob/main/docker-compose.yml" target="_blank" rel="noopener"><code>make up</code></a> 後，系統會拉起以下 4
             個主要容器，彼此在自定義的橋接網路中通信：
           </p>
           <table class="codelab-table">
@@ -1708,7 +1874,13 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
           <div class="codelab-step__header">
             <span class="codelab-step__num">3</span>
             <h2 class="codelab-step__title">
-              技術導師導讀：WebSocket 多模態串流核心實作
+              <a
+                class="title-link"
+                href="blob/main/docs/features/live-streaming-architecture.md"
+                target="_blank"
+                rel="noopener"
+                >技術導師導讀：WebSocket 多模態串流核心實作</a
+              >
             </h2>
           </div>
           <p>
@@ -1757,7 +1929,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
             帶學員閱讀此章時，建議依照下列順序打開檔案。前兩列是本章主軸，後兩列是支撐背景；這樣可以避免學員先陷入框架細節，而忽略
             Live WebSocket 的資料流。
           </p>
-          <table class="codelab-table">
+          <table class="codelab-table reading-order">
             <thead>
               <tr>
                 <th>帶讀順序與核心檔案</th>
@@ -1768,7 +1940,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
             <tbody>
               <tr>
                 <td>
-                  1. <code>app/services/live_agent_service.py</code><br />➔
+                  1. <a class="gh-src" href="blob/main/app/services/live_agent_service.py" target="_blank" rel="noopener"><code>app/services/live_agent_service.py</code></a><br />➔
                   <code>execute_live_session</code>
                 </td>
                 <td>WebSocket 雙向串流協調服務</td>
@@ -1781,7 +1953,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
               </tr>
               <tr>
                 <td>
-                  2. <code>app/streaming/upstream.py</code><br />➔
+                  2. <a class="gh-src" href="blob/main/app/streaming/upstream.py" target="_blank" rel="noopener"><code>app/streaming/upstream.py</code></a><br />➔
                   <code>upstream_task</code> /
                   <code>_resize_image_if_needed</code>
                 </td>
@@ -1794,7 +1966,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
               </tr>
               <tr>
                 <td>
-                  3. <code>app/services/agent_run_service.py</code><br />➔
+                  3. <a class="gh-src" href="blob/main/app/services/agent_run_service.py" target="_blank" rel="noopener"><code>app/services/agent_run_service.py</code></a><br />➔
                   <code>stream</code> &amp;
                   <code>map_adk_event_to_envelopes</code>
                 </td>
@@ -1807,7 +1979,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
               </tr>
               <tr>
                 <td>
-                  4. <code>app/container.py</code><br />➔
+                  4. <a class="gh-src" href="blob/main/app/container.py" target="_blank" rel="noopener"><code>app/container.py</code></a><br />➔
                   <code>build_app_container</code>
                 </td>
                 <td>依賴注入與容器工廠</td>
@@ -1829,7 +2001,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
             </summary>
             <div class="tech-accordion-content">
               <p>
-                當 FastAPI 應用程式（由 <code>app/api/main.py</code> 的
+                當 FastAPI 應用程式（由 <a class="gh-src" href="blob/main/app/api/main.py" target="_blank" rel="noopener"><code>app/api/main.py</code></a> 的
                 <code>lifespan</code>
                 監聽啟動）點亮時，後端會執行全域的一致性初始化：
               </p>
@@ -1844,7 +2016,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                 <li>
                   <strong>組裝依賴圖 (Dependency Graph)</strong>：呼叫
                   <code>build_app_container()</code>（於
-                  <code>app/container.py</code>）將元件組裝：
+                  <a class="gh-src" href="blob/main/app/container.py" target="_blank" rel="noopener"><code>app/container.py</code></a>）將元件組裝：
                   <ul>
                     <li>
                       <strong>DatabaseSessionService</strong>：連接
@@ -1852,7 +2024,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                     </li>
                     <li>
                       <strong>Agent 實例化</strong>：從
-                      <code>app/prompts/insurance_agent_prompt.txt</code>
+                      <a class="gh-src" href="blob/main/app/prompts/insurance_agent_prompt.txt" target="_blank" rel="noopener"><code>app/prompts/insurance_agent_prompt.txt</code></a>
                       載入系統提示詞。繫結本地狀態維護工具（如
                       <code>save_user_profile</code
                       >、<code>save_last_recommendation</code>）與遠端 MCP
@@ -2020,7 +2192,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       ry="3"
                       class="actor actor-bottom"
                     />
-                    <text
+                    <a class="gh-src" href="blob/main/app/services/audit_log_service.py" target="_blank" rel="noopener"><text
                       x="1964.5"
                       y="1567.5"
                       dominant-baseline="central"
@@ -2035,7 +2207,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       <tspan x="1964.5" dy="0">
                         services/audit_log_service.py
                       </tspan>
-                    </text>
+                    </text></a>
                   </g>
                   <g>
                     <rect
@@ -2050,7 +2222,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       ry="3"
                       class="actor actor-bottom"
                     />
-                    <text
+                    <a class="gh-src" href="blob/main/app/services/session_service.py" target="_blank" rel="noopener"><text
                       x="1711.5"
                       y="1567.5"
                       dominant-baseline="central"
@@ -2065,7 +2237,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       <tspan x="1711.5" dy="0">
                         services/session_service.py
                       </tspan>
-                    </text>
+                    </text></a>
                   </g>
                   <g>
                     <rect
@@ -2080,7 +2252,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       ry="3"
                       class="actor actor-bottom"
                     />
-                    <text
+                    <a class="gh-src" href="blob/main/app/agent.py" target="_blank" rel="noopener"><text
                       x="1469"
                       y="1567.5"
                       dominant-baseline="central"
@@ -2093,7 +2265,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       "
                     >
                       <tspan x="1469" dy="0">app/agent.py (Gemini 2.5)</tspan>
-                    </text>
+                    </text></a>
                   </g>
                   <g>
                     <rect
@@ -2136,7 +2308,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       ry="3"
                       class="actor actor-bottom"
                     />
-                    <text
+                    <a class="gh-src" href="blob/main/app/services/agent_run_service.py" target="_blank" rel="noopener"><text
                       x="821"
                       y="1567.5"
                       dominant-baseline="central"
@@ -2151,7 +2323,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       <tspan x="821" dy="0">
                         services/agent_run_service.py
                       </tspan>
-                    </text>
+                    </text></a>
                   </g>
                   <g>
                     <rect
@@ -2166,7 +2338,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       ry="3"
                       class="actor actor-bottom"
                     />
-                    <text
+                    <a class="gh-src" href="blob/main/app/api/routes/run.py" target="_blank" rel="noopener"><text
                       x="491"
                       y="1567.5"
                       dominant-baseline="central"
@@ -2179,7 +2351,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       "
                     >
                       <tspan x="491" dy="0">api/routes/run.py</tspan>
-                    </text>
+                    </text></a>
                   </g>
                   <g />
                   <g>
@@ -2214,7 +2386,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         ry="3"
                         class="actor actor-top"
                       />
-                      <text
+                      <a class="gh-src" href="blob/main/app/services/audit_log_service.py" target="_blank" rel="noopener"><text
                         x="1964.5"
                         y="32.5"
                         dominant-baseline="central"
@@ -2229,7 +2401,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         <tspan x="1964.5" dy="0">
                           services/audit_log_service.py
                         </tspan>
-                      </text>
+                      </text></a>
                     </g>
                   </g>
                   <g>
@@ -2264,7 +2436,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         ry="3"
                         class="actor actor-top"
                       />
-                      <text
+                      <a class="gh-src" href="blob/main/app/services/session_service.py" target="_blank" rel="noopener"><text
                         x="1711.5"
                         y="32.5"
                         dominant-baseline="central"
@@ -2279,7 +2451,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         <tspan x="1711.5" dy="0">
                           services/session_service.py
                         </tspan>
-                      </text>
+                      </text></a>
                     </g>
                   </g>
                   <g>
@@ -2314,7 +2486,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         ry="3"
                         class="actor actor-top"
                       />
-                      <text
+                      <a class="gh-src" href="blob/main/app/agent.py" target="_blank" rel="noopener"><text
                         x="1469"
                         y="32.5"
                         dominant-baseline="central"
@@ -2327,7 +2499,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         "
                       >
                         <tspan x="1469" dy="0">app/agent.py (Gemini 2.5)</tspan>
-                      </text>
+                      </text></a>
                     </g>
                   </g>
                   <g>
@@ -2410,7 +2582,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         ry="3"
                         class="actor actor-top"
                       />
-                      <text
+                      <a class="gh-src" href="blob/main/app/services/agent_run_service.py" target="_blank" rel="noopener"><text
                         x="821"
                         y="32.5"
                         dominant-baseline="central"
@@ -2425,7 +2597,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         <tspan x="821" dy="0">
                           services/agent_run_service.py
                         </tspan>
-                      </text>
+                      </text></a>
                     </g>
                   </g>
                   <g>
@@ -2460,7 +2632,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         ry="3"
                         class="actor actor-top"
                       />
-                      <text
+                      <a class="gh-src" href="blob/main/app/api/routes/run.py" target="_blank" rel="noopener"><text
                         x="491"
                         y="32.5"
                         dominant-baseline="central"
@@ -2473,7 +2645,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         "
                       >
                         <tspan x="491" dy="0">api/routes/run.py</tspan>
-                      </text>
+                      </text></a>
                     </g>
                   </g>
                   <g>
@@ -3974,6 +4146,34 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
               stream)
             </summary>
             <div class="tech-accordion-content">
+              <div class="gh-btn-group">
+                <a
+                  class="gh-btn"
+                  href="blob/main/app/streaming/upstream.py"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                    />
+                  </svg>
+                  在 GitHub 查看 <code>upstream.py</code>
+                </a>
+                <a
+                  class="gh-btn"
+                  href="blob/main/app/streaming/downstream.py"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  <svg viewBox="0 0 16 16" aria-hidden="true">
+                    <path
+                      d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                    />
+                  </svg>
+                  在 GitHub 查看 <code>downstream.py</code>
+                </a>
+              </div>
               <p>
                 這是本章的主要實作段落。講師可以把它當成一條完整的「即時 AI
                 通話管線」來帶：前端先建立 WebSocket 長連線，後端完成 JWT
@@ -4405,7 +4605,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       ry="3"
                       class="actor actor-bottom"
                     />
-                    <text
+                    <a class="gh-src" href="blob/main/app/api/routes/live.py" target="_blank" rel="noopener"><text
                       x="492"
                       y="2266.5"
                       dominant-baseline="central"
@@ -4418,7 +4618,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                       "
                     >
                       <tspan x="492" dy="-8">live.py</tspan>
-                    </text>
+                    </text></a>
                     <text
                       x="492"
                       y="2266.5"
@@ -4749,7 +4949,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         ry="3"
                         class="actor actor-top"
                       />
-                      <text
+                      <a class="gh-src" href="blob/main/app/api/routes/live.py" target="_blank" rel="noopener"><text
                         x="492"
                         y="32.5"
                         dominant-baseline="central"
@@ -4762,7 +4962,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                         "
                       >
                         <tspan x="492" dy="-8">live.py</tspan>
-                      </text>
+                      </text></a>
                       <text
                         x="492"
                         y="32.5"
@@ -6740,7 +6940,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                 <li>
                   <strong
                     >相依性注入與生命週期一致性
-                    (<code>app/container.py</code>)</strong
+                    (<a class="gh-src" href="blob/main/app/container.py" target="_blank" rel="noopener"><code>app/container.py</code></a>)</strong
                   >：
                   <p>
                     使用
@@ -6755,7 +6955,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                 <li>
                   <strong
                     >會話開關與 Prompt 狀態自省
-                    (<code>app/services/session_service.py</code>)</strong
+                    (<a class="gh-src" href="blob/main/app/services/session_service.py" target="_blank" rel="noopener"><code>app/services/session_service.py</code></a>)</strong
                   >：
                   <p>
                     前端對功能按鍵（如同理心對話或主動發話）的更新，被包裝成一個系統事件並透過
@@ -6771,7 +6971,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                 <li>
                   <strong
                     >低延遲多模態圖片優化
-                    (<code>app/streaming/upstream.py</code>)</strong
+                    (<a class="gh-src" href="blob/main/app/streaming/upstream.py" target="_blank" rel="noopener"><code>app/streaming/upstream.py</code></a>)</strong
                   >：
                   <p>
                     在 WebSocket
@@ -6814,7 +7014,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                 ><br />
                 Gemini Live
                 接收過大的圖片或影格時，可能引發維度錯誤或顯著延遲。帶學員看
-                <code>upstream.py</code>
+                <a class="gh-src" href="blob/main/app/streaming/upstream.py" target="_blank" rel="noopener"><code>upstream.py</code></a>
                 時，請強調這段處理的目標是維持即時互動流暢度：限制尺寸、轉
                 RGB、移除透明通道、輸出
                 JPEG，都是為了讓模型更快、更穩定地消費影像。
@@ -6857,7 +7057,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
               <ul>
                 <li>
                   所有核心 API (包含 WebSocket) 都會經過
-                  <code>app/security/auth.py</code> 的 Token 驗證。
+                  <a class="gh-src" href="blob/main/app/security/auth.py" target="_blank" rel="noopener"><code>app/security/auth.py</code></a> 的 Token 驗證。
                 </li>
                 <li>
                   支援 OAuth2 密碼驗證流，實現多端權杖核對。REST API 採用 Header
@@ -6869,7 +7069,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
             <li>
               <strong>PII 敏感資料遮蔽 (PII Redaction)</strong>：
               <p>
-                實作於 <code>app/security/pii.py</code>，透過自定義 Regex
+                實作於 <a class="gh-src" href="blob/main/app/security/pii.py" target="_blank" rel="noopener"><code>app/security/pii.py</code></a>，透過自定義 Regex
                 高效過濾敏感資訊，支援去識別化（Redaction）與雜湊化（Hashing）。例如，在資料發送給外網
                 LLM 之前，會對台灣身分證字號、Email、電話進行自動轉換：
               </p>
@@ -6880,7 +7080,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
             <li>
               <strong>雜湊鏈防竄改審計日誌 (Hash Chain Audit Log)</strong>：
               <p>
-                在 <code>app/services/audit_log_service.py</code> 中實作。所有
+                在 <a class="gh-src" href="blob/main/app/services/audit_log_service.py" target="_blank" rel="noopener"><code>app/services/audit_log_service.py</code></a> 中實作。所有
                 Agent 動作與工具呼叫在 PII
                 遮蔽後，會依序寫入資料庫審計日誌（Audit Log）。
               </p>
@@ -6900,7 +7100,13 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
           <div class="codelab-step__header">
             <span class="codelab-step__num">5</span>
             <h2 class="codelab-step__title">
-              品質保證：測試與評估 (QA &amp; Eval)
+              <a
+                class="title-link"
+                href="blob/main/docs/features/testing.md"
+                target="_blank"
+                rel="noopener"
+                >品質保證：測試與評估 (QA &amp; Eval)</a
+              >
             </h2>
           </div>
           <p>
@@ -6909,7 +7115,22 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
             評估 (ADK Evals)」的雙重驗證迴圈：
           </p>
 
-          <h3>A. 本地測試金字塔 (Testing Pyramid)</h3>
+          <div class="gh-head-row">
+            <h3>A. 本地測試金字塔 (Testing Pyramid)</h3>
+            <a
+              class="gh-btn"
+              href="tree/main/tests"
+              target="_blank"
+              rel="noopener"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                />
+              </svg>
+              在 GitHub 查看 <code>tests/</code>
+            </a>
+          </div>
           <p>
             使用 <code>pytest</code> 搭配
             <code>pytest-asyncio</code> 實作完整的自動化測試套件（詳見
@@ -6922,8 +7143,8 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
               >
               <ul>
                 <li>
-                  驗證會話管理 CRUD (<code>test_session_service.py</code>)
-                  與使用者資料檢索邏輯 (<code>test_user_service.py</code>)。
+                  驗證會話管理 CRUD (<a class="gh-src" href="blob/main/tests/test_session_service.py" target="_blank" rel="noopener"><code>test_session_service.py</code></a>)
+                  與使用者資料檢索邏輯 (<a class="gh-src" href="blob/main/tests/unit/test_user_service.py" target="_blank" rel="noopener"><code>test_user_service.py</code></a>)。
                 </li>
               </ul>
             </li>
@@ -6934,7 +7155,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
                 <li>
                   驗證 API 路由在未授權下拋出 401
                   錯誤、審計日誌雜湊鏈防竄改是否無縫串接，以及 PII
-                  遮蔽演算法的正確性 (<code>test_pii_redaction.py</code>)。
+                  遮蔽演算法的正確性 (<a class="gh-src" href="blob/main/tests/security/test_pii_redaction.py" target="_blank" rel="noopener"><code>test_pii_redaction.py</code></a>)。
                 </li>
               </ul>
             </li>
@@ -6950,7 +7171,22 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
             </li>
           </ul>
 
-          <h3>B. ADK 智慧評估迴圈 (Eval-Fix Loop)</h3>
+          <div class="gh-head-row">
+            <h3>B. ADK 智慧評估迴圈 (Eval-Fix Loop)</h3>
+            <a
+              class="gh-btn"
+              href="tree/main/tests/eval"
+              target="_blank"
+              rel="noopener"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                />
+              </svg>
+              在 GitHub 查看 <code>tests/eval/</code>
+            </a>
+          </div>
           <p>
             傳統 pytest
             無法對模型「答非所問」或「幻覺推薦」進行量化打分。因此，我們利用
@@ -6959,33 +7195,25 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
           </p>
           <ol>
             <li>
-              <strong>核心對話 (Core Evals)</strong>：<code
-                >make eval-core</code
-              >
+              <strong>核心對話 (Core Evals)</strong>：<a class="gh-src" href="blob/main/Makefile#L444" target="_blank" rel="noopener"><code>make eval-core</code></a>
               (驗證基本保單搜尋、推薦關聯與完整資訊補全)。
             </li>
             <li>
-              <strong>安全性邊界 (Safety Evals)</strong>：<code
-                >make eval-safety</code
-              >
+              <strong>安全性邊界 (Safety Evals)</strong>：<a class="gh-src" href="blob/main/Makefile#L473" target="_blank" rel="noopener"><code>make eval-safety</code></a>
               (驗證系統抵禦惡意 Prompt Injection 的能力，並確保 PII 不被 echo
               回應給用戶)。
             </li>
             <li>
-              <strong>即時互動情境 (Live Evals)</strong>：<code
-                >make eval-live</code
-              >
+              <strong>即時互動情境 (Live Evals)</strong>：<a class="gh-src" href="blob/main/Makefile#L525" target="_blank" rel="noopener"><code>make eval-live</code></a>
               (針對 Live 模式下的情感共鳴 (Affective Empathy) 與主動建議評分)。
             </li>
             <li>
-              <strong>會話歷史記憶 (Session Aware)</strong>：<code
-                >make eval-session-aware</code
-              >
+              <strong>會話歷史記憶 (Session Aware)</strong>：<a class="gh-src" href="blob/main/Makefile#L511" target="_blank" rel="noopener"><code>make eval-session-aware</code></a>
               (檢核 Agent 是否能記住上個回合的使用者偏好或歷史推薦)。
             </li>
             <li>
               <strong>全域指標評估 (All-in-One)</strong>：執行
-              <code>make eval-all</code>。遍歷所有 evalsets
+              <a class="gh-src" href="blob/main/Makefile#L583" target="_blank" rel="noopener"><code>make eval-all</code></a>。遍歷所有 evalsets
               並產出視覺化報告，評分準則涵蓋
               <code>Instruction Following</code>、<code
                 >Tool Selection Accuracy</code
@@ -7003,14 +7231,37 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
         <section class="codelab-step" id="step-6">
           <div class="codelab-step__header">
             <span class="codelab-step__num">6</span>
-            <h2 class="codelab-step__title">營運與觀測 (Observability)</h2>
+            <h2 class="codelab-step__title">
+              <a
+                class="title-link"
+                href="https://adk.dev/integrations/bigquery-agent-analytics/"
+                target="_blank"
+                rel="noopener"
+                >營運與觀測 (Observability)</a
+              >
+            </h2>
           </div>
           <p>
             當 AI Agent
             開始處理真實世界的業務，我們需要實時、全方位的「觀測之眼」。專案實作了多維度的可觀測性架構：
           </p>
 
-          <h3>A. OpenTelemetry 分散式追蹤 (Agent Tracing)</h3>
+          <div class="gh-head-row">
+            <h3>A. OpenTelemetry 分散式追蹤 (Agent Tracing)</h3>
+            <a
+              class="gh-btn"
+              href="blob/main/docs/features/obs.md"
+              target="_blank"
+              rel="noopener"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                />
+              </svg>
+              在 GitHub 查看 <code>obs.md</code>
+            </a>
+          </div>
           <ul>
             <li>
               <strong>標準 Conventions</strong>：符合 OpenTelemetry 針對 GenAI
@@ -7021,7 +7272,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
             <li>
               <strong>自定義追蹤裝飾器</strong>：
               <p>
-                在會話意識與狀態管理工具（<code>app/tools/session_tools.py</code>）中，我們使用
+                在會話意識與狀態管理工具（<a class="gh-src" href="blob/main/app/tools/session_tools.py" target="_blank" rel="noopener"><code>app/tools/session_tools.py</code></a>）中，我們使用
                 <code>@tracer.start_as_current_span</code> 裝飾本地操作（如
                 <code>save_user_profile</code>），可在 GCP Trace Explorer
                 內深度洞察各工具在雙向非同步環境下的精確耗時。
@@ -7045,7 +7296,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
 
           <h3>C. BigQuery Agent Analytics 與成本監控</h3>
           <p>
-            我們在 <code>app/config.py</code> 整合了
+            我們在 <a class="gh-src" href="blob/main/app/config.py" target="_blank" rel="noopener"><code>app/config.py</code></a> 整合了
             <code>BigQueryAgentAnalyticsPlugin</code
             >。此插件會非同步將對話的生命週期事件（如
             <code>LLM_REQUEST</code
@@ -7077,7 +7328,7 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
             <strong>OBSERVABILITY GRACEFUL DEGRADATION:</strong>
             <p>
               可觀測性架構具備<b>優雅降級</b>特性。在本地執行
-              <code>make playground</code>時，若偵測到無 GCP 環境，OTel
+              <a class="gh-src" href="blob/main/Makefile#L603" target="_blank" rel="noopener"><code>make playground</code></a>時，若偵測到無 GCP 環境，OTel
               自動切換至 No-Op 模式，不拖累本地開發效能；BigQuery
               插件若未配置環境變數則自動跳過初始化。
             </p>
@@ -7093,7 +7344,13 @@ docker logs -f insurance-frontend # 即時查看前端 Next.js 運行日誌</cod
           <div class="codelab-step__header">
             <span class="codelab-step__num">7</span>
             <h2 class="codelab-step__title">
-              個人沙盒環境：Dev 部署 (Dev Deployment)
+              <a
+                class="title-link"
+                href="blob/main/deployment/docs/dev.md"
+                target="_blank"
+                rel="noopener"
+                >個人沙盒環境：Dev 部署 (Dev Deployment)</a
+              >
             </h2>
           </div>
           <p>
@@ -7188,14 +7445,10 @@ make tf-apply</code></pre>
                 >
                 <ul>
                   <li>
-                    如果你想一鍵初始化並套用 Terraform，可執行：<code
-                      >make setup-dev-env</code
-                    >
+                    如果你想一鍵初始化並套用 Terraform，可執行：<a class="gh-src" href="blob/main/Makefile#L327" target="_blank" rel="noopener"><code>make tf-apply</code></a>
                   </li>
                   <li>
-                    如果你想自動一鍵打包映像檔、推送並 Apply 部署，可執行：<code
-                      >make gcp-deploy</code
-                    >
+                    如果你想自動一鍵打包映像檔、推送並 Apply 部署，可執行：<a class="gh-src" href="blob/main/Makefile#L429" target="_blank" rel="noopener"><code>make gcp-deploy</code></a>
                   </li>
                 </ul>
               </div>
@@ -7291,30 +7544,26 @@ make tf-apply</code></pre>
                   容器作為臨時用戶端，連接 Proxy 通道，依序寫入：
                   <ul>
                     <li>
-                      <code>db/schema.sql</code
-                      >（核心業務：建立產品、規則與使用者畫像資料表）。
+                      <a class="gh-src" href="blob/main/db/schema.sql" target="_blank" rel="noopener"><code>db/schema.sql</code></a>（核心業務：建立產品、規則與使用者畫像資料表）。
                     </li>
                     <li>
-                      <code>db/audit_schema.sql</code
-                      >（合規審計：建立雜湊鏈稽核資料表）。
+                      <a class="gh-src" href="blob/main/db/audit_schema.sql" target="_blank" rel="noopener"><code>db/audit_schema.sql</code></a>（合規審計：建立雜湊鏈稽核資料表）。
                     </li>
                     <li>
-                      <code>db/seed.sql</code
-                      >（預設商品：寫入商品種子資料與保單檢索關聯規則）。
+                      <a class="gh-src" href="blob/main/db/seed.sql" target="_blank" rel="noopener"><code>db/seed.sql</code></a>（預設商品：寫入商品種子資料與保單檢索關聯規則）。
                     </li>
                   </ul>
                 </li>
                 <li>
                   <strong>匯入預設測試使用者</strong>：運行
-                  <code>scripts/seed_user.py</code
-                  >，在雲端資料庫中安全寫入測試帳號（<code
+                  <a class="gh-src" href="blob/main/scripts/seed_user.py" target="_blank" rel="noopener"><code>scripts/seed_user.py</code></a>，在雲端資料庫中安全寫入測試帳號（<code
                     >testuser / password123</code
                   >）。
                 </li>
                 <li>
                   <strong>FAQ RAG 向量知識庫載入 (Vector Ingestion)</strong
                   >：運行
-                  <code>scripts/ingest_faq_embeddings.py</code>。此步驟會載入
+                  <a class="gh-src" href="blob/main/scripts/ingest_faq_embeddings.py" target="_blank" rel="noopener"><code>scripts/ingest_faq_embeddings.py</code></a>。此步驟會載入
                   FAQ 文字，呼叫
                   <strong>Vertex AI Text Embeddings API</strong> 產生 768
                   維度的高精度嵌入向量（Embedding），隨後安全存入 Cloud SQL 的
@@ -7360,8 +7609,8 @@ make gcp-db-proxy    # 手動在本地背景拉起 5432 對應雲端 SQL 的安�
                 <li>
                   <strong>方式 B（檢視部署輸出日誌）</strong>：
                   <p>
-                    回顧您執行 <code>make setup-dev-env</code> 或
-                    <code>make tf-apply</code> 結束時，終端機會列印出
+                    回顧您執行
+                    <a class="gh-src" href="blob/main/Makefile#L327" target="_blank" rel="noopener"><code>make tf-apply</code></a> 結束時，終端機會列印出
                     <code>db_initialization_instructions</code>
                     區塊，其中已包含該前端網址與測試帳密資訊。
                   </p>
@@ -7490,7 +7739,7 @@ make gcp-db-proxy    # 手動在本地背景拉起 5432 對應雲端 SQL 的安�
               若您在存取前端網址時遇到連線問題或載入緩慢，請參閱下方的<b
                 >「六、 開發沙盒故障排除問答」</b
               >。此外，當您結束沙盒環境測試時，切記執行
-              <code>make tf-destroy</code> 來釋放 GCP
+              <a class="gh-src" href="blob/main/Makefile#L336" target="_blank" rel="noopener"><code>make tf-destroy</code></a> 來釋放 GCP
               資源，避免產生不必要的雲端帳單費用。
             </p>
           </div>
@@ -8509,7 +8758,7 @@ make gcp-db-proxy    # 手動在本地背景拉起 5432 對應雲端 SQL 的安�
               <strong>1. 元資料安全紀錄 (Cloud Logging - Metadata Only)</strong
               >：
               <p>
-                在 <code>app/app_utils/telemetry.py</code> 中，系統會將
+                在 <a class="gh-src" href="blob/main/app/app_utils/telemetry.py" target="_blank" rel="noopener"><code>app/app_utils/telemetry.py</code></a> 中，系統會將
                 <code>OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT</code>
                 設為 <code>NO_CONTENT</code>。因此寫入 GCP Cloud Logging
                 的日誌僅包含 API 呼叫元資料（如 Token 數、API 耗時與 Trace
@@ -8541,7 +8790,7 @@ make gcp-db-proxy    # 手動在本地背景拉起 5432 對應雲端 SQL 的安�
                 為了避免在 BigQuery 中重複儲存龐大的對話日誌，Terraform
                 會自動建立一個 BigQuery External Table（指向 GCS 中的 JSONL
                 檔案）與 Cloud Logging Linked Dataset。隨後利用
-                <code>deployment/terraform/sql/completions.sql</code> 自動建立
+                <a class="gh-src" href="blob/main/deployment/terraform/sql/completions.sql" target="_blank" rel="noopener"><code>deployment/terraform/sql/completions.sql</code></a> 自動建立
                 <code>completions_view</code> 視圖。我們只需用單一 SQL 查詢該
                 View，BigQuery 就會自動根據日誌中的 `messages_ref_uri` 實時 Join
                 GCS 的 JSONL Payload，實現大數據去重、Token 成本監控與幻覺排查！
@@ -8602,7 +8851,7 @@ make gcp-db-proxy    # 手動在本地背景拉起 5432 對應雲端 SQL 的安�
                 </li>
                 <li>
                   匯入成功後，重新執行
-                  <code>make tf-apply</code> 即可恢復正常狀態同步。
+                  <a class="gh-src" href="blob/main/Makefile#L327" target="_blank" rel="noopener"><code>make tf-apply</code></a> 即可恢復正常狀態同步。
                 </li>
               </ol>
             </div>
@@ -8626,7 +8875,7 @@ make gcp-db-proxy    # 手動在本地背景拉起 5432 對應雲端 SQL 的安�
                 <strong>【解決方案】</strong><br />
                 <strong
                   >本專案的
-                  <code>make tf-destroy</code> 指令已內建自動修復邏輯。</strong
+                  <a class="gh-src" href="blob/main/Makefile#L336" target="_blank" rel="noopener"><code>make tf-destroy</code></a> 指令已內建自動修復邏輯。</strong
                 >
                 它會先執行
                 <code>terraform state rm</code> 將該使用者從狀態中移除，讓
@@ -8672,7 +8921,7 @@ make gcp-db-proxy    # 手動在本地背景拉起 5432 對應雲端 SQL 的安�
               <p>
                 <strong>【問題原因】</strong><br />
                 這通常是 Docker 啟動掛載路徑錯誤。在
-                <code>make gcp-db-setup</code> 流程中，指令會嘗試將本機的 Google
+                <a class="gh-src" href="blob/main/Makefile#L362" target="_blank" rel="noopener"><code>make gcp-db-setup</code></a> 流程中，指令會嘗試將本機的 Google
                 Cloud 認證（ADC）掛載到
                 <code>cloud-sql-proxy</code>
                 容器中。如果本機找不到憑證檔案，或是
@@ -8738,7 +8987,7 @@ chmod 644 /tmp/adc_db_setup.json</code></pre>
                   <pre><code class="language-bash">cd deployment/terraform/dev
 terraform untaint module.agent_infrastructure.google_logging_project_bucket_config.genai_telemetry_bucket</code></pre>
                 </li>
-                <li>重新執行 <code>make tf-apply</code> 恢復正常同步。</li>
+                <li>重新執行 <a class="gh-src" href="blob/main/Makefile#L327" target="_blank" rel="noopener"><code>make tf-apply</code></a> 恢復正常同步。</li>
               </ol>
             </div>
           </details>
@@ -8771,11 +9020,11 @@ terraform untaint module.agent_infrastructure.google_logging_project_bucket_conf
                 </li>
                 <li>
                   <strong>匯入種子資料</strong>：執行
-                  <code>scripts/seed_user.py</code>，匯入系統初始測試帳號。
+                  <a class="gh-src" href="blob/main/scripts/seed_user.py" target="_blank" rel="noopener"><code>scripts/seed_user.py</code></a>，匯入系統初始測試帳號。
                 </li>
                 <li>
                   <strong>FAQ 知識庫向量化 (RAG Ingestion)</strong>：運行
-                  <code>scripts/ingest_faq_embeddings.py</code>。此步驟讀取 FAQ
+                  <a class="gh-src" href="blob/main/scripts/ingest_faq_embeddings.py" target="_blank" rel="noopener"><code>scripts/ingest_faq_embeddings.py</code></a>。此步驟讀取 FAQ
                   對話內容，並呼叫
                   <strong>Vertex AI Text Embeddings API</strong> 生成 RAG
                   向量，隨後寫入 Cloud SQL 向量資料表中。
@@ -8869,7 +9118,7 @@ terraform untaint module.agent_infrastructure.google_logging_project_bucket_conf
               </div>
               <p>
                 <em>自動修復機制：</em>本專案的
-                <code>make tf-destroy</code> 指令已內建 PostgreSQL 使用者 (Role)
+                <a class="gh-src" href="blob/main/Makefile#L336" target="_blank" rel="noopener"><code>make tf-destroy</code></a> 指令已內建 PostgreSQL 使用者 (Role)
                 移除的自動修復邏輯。它會先在背景執行
                 <code>terraform state rm</code>
                 將可能具有依賴關聯的資料庫使用者從 Terraform State
@@ -8886,7 +9135,7 @@ terraform untaint module.agent_infrastructure.google_logging_project_bucket_conf
               <p>
                 如果您日後需要重新點亮此個人沙盒環境，只需重複執行之前的初始化與套用指令即可：
               </p>
-              <pre><code class="language-bash">make setup-dev-env
+              <pre><code class="language-bash">make tf-apply
 make gcp-db-setup</code></pre>
             </li>
           </ol>
@@ -8911,7 +9160,13 @@ make gcp-db-setup</code></pre>
           <div class="codelab-step__header">
             <span class="codelab-step__num">8</span>
             <h2 class="codelab-step__title">
-              航向雲端：Staging 部署與 CI/CD 管線
+              <a
+                class="title-link"
+                href="blob/main/deployment/docs/cicd.md"
+                target="_blank"
+                rel="noopener"
+                >航向雲端：Staging 部署與 CI/CD 管線</a
+              >
             </h2>
           </div>
           <p>
@@ -11014,7 +11269,7 @@ make gcp-db-setup</code></pre>
                       ERROR):</strong
                     >
                     <p>
-                      若在執行 <code>make tf-bootstrap</code> 期間，Terraform
+                      若在執行 <a class="gh-src" href="blob/main/Makefile#L283" target="_blank" rel="noopener"><code>make tf-bootstrap</code></a> 期間，Terraform
                       拋出如下錯誤：<br />
                       <code
                         >Error: Error waiting to create Repository: Error
@@ -11040,7 +11295,7 @@ make gcp-db-setup</code></pre>
                       <strong>Only select repositories</strong> 中搜尋並新增
                       <code>adk-insurance-recommendation-agent</code
                       >（或您實際的儲存庫名稱）並儲存。儲存完畢後，重新執行
-                      <code>make tf-bootstrap</code> 即可順利通過。
+                      <a class="gh-src" href="blob/main/Makefile#L283" target="_blank" rel="noopener"><code>make tf-bootstrap</code></a> 即可順利通過。
                     </p>
                   </div>
                 </li>
@@ -11122,12 +11377,27 @@ make tf-apply</code></pre>
             <p>
               如果在學習、測試或重複部署過程中操作不當（如未同步狀態檔），導致
               GCP 上產生了多個名稱類似的孤兒（Orphaned）Cloud SQL 實體，可以使用
-              <code>make gcp-cleanup-orphans</code>
+              <a class="gh-src" href="blob/main/Makefile#L419" target="_blank" rel="noopener"><code>make gcp-cleanup-orphans</code></a>
               輔助列出並一鍵清除多餘資源，避免產生額外雲端帳單費用。
             </p>
           </div>
 
-          <h3>五、 工作負載身分同盟 (Workload Identity Federation, WIF)</h3>
+          <div class="gh-head-row">
+            <h3>五、 工作負載身分同盟 (Workload Identity Federation, WIF)</h3>
+            <a
+              class="gh-btn"
+              href="blob/main/deployment/docs/wif-setup.md"
+              target="_blank"
+              rel="noopener"
+            >
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+                />
+              </svg>
+              在 GitHub 查看 <code>wif-setup.md</code>
+            </a>
+          </div>
           <p>
             為避免使用含有高度安全洩漏風險的靜態 GCP 服務帳戶私鑰金鑰檔
             (.json)，專案整合了
@@ -11162,7 +11432,7 @@ make tf-apply</code></pre>
             <p>
               若欲了解 Workload Identity Federation (WIF)
               的詳細原理與完整設定步驟，請參考專案目錄下的
-              <code>deployment/docs/wif-setup.md</code>。
+              <a class="gh-src" href="blob/main/deployment/docs/wif-setup.md" target="_blank" rel="noopener"><code>deployment/docs/wif-setup.md</code></a>。
             </p>
           </div>
 
@@ -11171,7 +11441,7 @@ make tf-apply</code></pre>
             <li>
               <strong
                 >持續整合 (PR 階段 -
-                <code>.cloudbuild/pr_checks.yaml</code>)</strong
+                <a class="gh-src" href="blob/main/.cloudbuild/pr_checks.yaml" target="_blank" rel="noopener"><code>.cloudbuild/pr_checks.yaml</code></a>)</strong
               >：
               <p>
                 針對所有 Pull Request 執行。任務包含代碼檢查
@@ -11182,14 +11452,14 @@ make tf-apply</code></pre>
             <li>
               <strong
                 >Staging 環境部署 (合併 main -
-                <code>.cloudbuild/staging.yaml</code>)</strong
+                <a class="gh-src" href="blob/main/.cloudbuild/staging.yaml" target="_blank" rel="noopener"><code>.cloudbuild/staging.yaml</code></a>)</strong
               >：
               <p>
                 當代碼合併至 <code>main</code> 分支時觸發。任務包含：建置 Docker
                 映像檔（以 Commit SHA 為標記）、推送到 Artifact Registry、更新
                 Staging 環境基礎架構、最後<strong
                   >自動執行部署後評估 (ADK Eval -
-                  <code>make eval-all</code>)</strong
+                  <a class="gh-src" href="blob/main/Makefile#L583" target="_blank" rel="noopener"><code>make eval-all</code></a>)</strong
                 >。若 AI 評估指標（如 PII
                 合規、推薦正確度）未達標準，管線將自動中斷。
               </p>
@@ -11197,7 +11467,7 @@ make tf-apply</code></pre>
             <li>
               <strong
                 >Prod 生產環境發布 (建立 Git Tag -
-                <code>.cloudbuild/deploy-to-prod.yaml</code>)</strong
+                <a class="gh-src" href="blob/main/.cloudbuild/deploy-to-prod.yaml" target="_blank" rel="noopener"><code>.cloudbuild/deploy-to-prod.yaml</code></a>)</strong
               >：
               <p>
                 當建立 Git Tag（如
@@ -11230,7 +11500,7 @@ make tf-apply</code></pre>
                 <strong>Cloud Run Job</strong>
                 (<code>db-migration</code>)。當資料庫 Schema
                 有變更時，您可以直接透過 GCP Web Console 手動執行此 Job，或利用
-                <code>make gcp-db-setup</code> 指令同步雲端資料庫結構。
+                <a class="gh-src" href="blob/main/Makefile#L362" target="_blank" rel="noopener"><code>make gcp-db-setup</code></a> 指令同步雲端資料庫結構。
               </p>
             </li>
             <li>
@@ -11283,7 +11553,7 @@ make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹�
                       執行此命令會永久刪除 OIDC 授權憑證、GitHub App
                       安全連接以及所有的 Cloud Build
                       構建觸發器。未來若要重新啟用，必須重新執行
-                      <code>make tf-bootstrap</code> 流程。
+                      <a class="gh-src" href="blob/main/Makefile#L283" target="_blank" rel="noopener"><code>make tf-bootstrap</code></a> 流程。
                     </p>
                   </div>
                 </li>
@@ -11302,16 +11572,16 @@ make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹�
             </li>
             <li>
               ✅ <strong>Terraform 狀態</strong>：已執行
-              <code>make tf-gen-config</code> 生成正確的 backend 配置。
+              <a class="gh-src" href="blob/main/Makefile#L83" target="_blank" rel="noopener"><code>make tf-gen-config</code></a> 生成正確的 backend 配置。
             </li>
             <li>
               ✅ <strong>CI/CD 觸發器</strong>：已執行
-              <code>make tf-bootstrap</code> (或手動腳本) 順利建立 CI/CD
+              <a class="gh-src" href="blob/main/Makefile#L283" target="_blank" rel="noopener"><code>make tf-bootstrap</code></a> (或手動腳本) 順利建立 CI/CD
               觸發器與 GitHub 連線。
             </li>
             <li>
               ✅ <strong>本地測試與評估</strong>：在本地已通過
-              <code>make test</code> 與 <code>make eval</code>，確認 AI
+              <a class="gh-src" href="blob/main/Makefile#L616" target="_blank" rel="noopener"><code>make test</code></a> 與 <a class="gh-src" href="blob/main/Makefile#L575" target="_blank" rel="noopener"><code>make eval</code></a>，確認 AI
               指標符合標準。
             </li>
           </ul>
@@ -11516,10 +11786,10 @@ make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹�
                       多模態即時 Hooks: <code>useAudioCapture</code>,
                       <code>useLiveAgent</code>
                     </li>
-                    <li>波形視覺化: <code>WaveformVisualizer.tsx</code></li>
+                    <li>波形視覺化: <a class="gh-src" href="blob/main/frontend/components/WaveformVisualizer.tsx" target="_blank" rel="noopener"><code>WaveformVisualizer.tsx</code></a></li>
                     <li>
-                      決策軌跡與狀態: <code>TimelineNodes.tsx</code>,
-                      <code>StateTree.tsx</code>
+                      決策軌跡與狀態: <a class="gh-src" href="blob/main/frontend/components/TimelineNodes.tsx" target="_blank" rel="noopener"><code>TimelineNodes.tsx</code></a>,
+                      <a class="gh-src" href="blob/main/frontend/components/StateTree.tsx" target="_blank" rel="noopener"><code>StateTree.tsx</code></a>
                     </li>
                   </ul>
                 </td>
@@ -11532,12 +11802,12 @@ make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹�
                 <td>
                   <ul>
                     <li>
-                      WebSocket 串流調度: <code>live_agent_service.py</code>
+                      WebSocket 串流調度: <a class="gh-src" href="blob/main/app/services/live_agent_service.py" target="_blank" rel="noopener"><code>live_agent_service.py</code></a>
                     </li>
                     <li>
-                      隱私與合規安全: <code>pii.py</code>, <code>auth.py</code>
+                      隱私與合規安全: <a class="gh-src" href="blob/main/app/security/pii.py" target="_blank" rel="noopener"><code>pii.py</code></a>, <a class="gh-src" href="blob/main/app/security/auth.py" target="_blank" rel="noopener"><code>auth.py</code></a>
                     </li>
-                    <li>審計日誌與雜湊鏈: <code>audit_log_service.py</code></li>
+                    <li>審計日誌與雜湊鏈: <a class="gh-src" href="blob/main/app/services/audit_log_service.py" target="_blank" rel="noopener"><code>audit_log_service.py</code></a></li>
                   </ul>
                 </td>
               </tr>
@@ -11550,16 +11820,16 @@ make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹�
                 <td>
                   <ul>
                     <li>
-                      AI 代理人定義: <code>app/agent.py</code> 與系統提示詞
+                      AI 代理人定義: <a class="gh-src" href="blob/main/app/agent.py" target="_blank" rel="noopener"><code>app/agent.py</code></a> 與系統提示詞
                       <code>prompts/</code>
                     </li>
                     <li>
-                      MCP 工具集關聯: <code>db/tools.local.yaml</code>,
-                      <code>db/tools.cloud.yaml</code>
+                      MCP 工具集關聯: <a class="gh-src" href="blob/main/db/tools.local.yaml" target="_blank" rel="noopener"><code>db/tools.local.yaml</code></a>,
+                      <a class="gh-src" href="blob/main/db/tools.cloud.yaml" target="_blank" rel="noopener"><code>db/tools.cloud.yaml</code></a>
                     </li>
                     <li>
                       FAQ 向量檢索:
-                      <code>scripts/ingest_faq_embeddings.py</code>
+                      <a class="gh-src" href="blob/main/scripts/ingest_faq_embeddings.py" target="_blank" rel="noopener"><code>scripts/ingest_faq_embeddings.py</code></a>
                     </li>
                   </ul>
                 </td>
@@ -11577,7 +11847,7 @@ make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹�
                     </li>
                     <li>
                       自動化發布管線:
-                      <code>.cloudbuild/deploy-to-prod.yaml</code>
+                      <a class="gh-src" href="blob/main/.cloudbuild/deploy-to-prod.yaml" target="_blank" rel="noopener"><code>.cloudbuild/deploy-to-prod.yaml</code></a>
                     </li>
                     <li>
                       可觀測性與監控: GenAI OpenTelemetry, BigQuery Log
@@ -11813,7 +12083,18 @@ make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹�
 
     <script>
       // Initialize syntax highlighting with safety fallback
+      // ⬇️⬇️ 換新 repo 只需改這一行（網域 + repo 路徑），其餘連結皆為相對路徑 ⬇️⬇️
+      const GH_REPO =
+        'https://github.com/lastingyeh/adk-insurance-recommendation-agent';
+
       document.addEventListener('DOMContentLoaded', () => {
+        // 將相對的 blob/main、tree/main 連結補上 repo 網域（單一來源 GH_REPO）
+        document
+          .querySelectorAll('a[href^="blob/main/"], a[href^="tree/main/"]')
+          .forEach((a) => {
+            a.setAttribute('href', GH_REPO + '/' + a.getAttribute('href'));
+          });
+
         if (typeof hljs !== 'undefined') {
           document.querySelectorAll('pre code').forEach((el) => {
             try {
@@ -11823,6 +12104,78 @@ make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹�
             }
           });
         }
+
+        // 將 bash 程式碼區塊開頭的 make <target> 包成 GitHub 連結
+        // （在 hljs 高亮後執行，避免被重建覆蓋；highlight.js 對 bash 不會
+        //   把 make/target 變成 span，開頭為純文字節點，故可安全包覆）
+        const GH_BASE = GH_REPO + '/blob/main/';
+        const MAKE_LINKS = {
+          "_kill-adk-port":"Makefile#L249", "_kill-fastapi-port":"Makefile#L252", "_kill-port":"Makefile#L258",
+          "_kill-ui-port":"Makefile#L255", "backend":"Makefile#L561", "build-push":"Makefile#L101",
+          "check":"Makefile#L269", "clean":"Makefile#L550", "clean-all":"Makefile#L555",
+          "db-clean":"Makefile#L161", "db-ingest":"scripts/ingest_faq_embeddings.py", "db-init":"Makefile#L147",
+          "db-reset":"Makefile#L165", "db-seed":"scripts/seed_user.py", "db-setup":"Makefile#L158",
+          "db-up":"docker-compose.yml", "debug-fastapi":".vscode/launch.json", "deploy":"Makefile#L563",
+          "down":"docker-compose.yml", "env-check":"Makefile#L138", "env-check-gcp":"Makefile#L112",
+          "eval":"Makefile#L575", "eval-all":"Makefile#L583", "eval-core":"Makefile#L444",
+          "eval-core-case-1":"Makefile#L450", "eval-core-case-2":"Makefile#L453", "eval-core-case-3":"Makefile#L456",
+          "eval-extended":"Makefile#L459", "eval-extended-case-4":"Makefile#L464", "eval-extended-case-5":"Makefile#L467",
+          "eval-extended-case-6":"Makefile#L470", "eval-live":"Makefile#L525", "eval-live-case-1":"Makefile#L532",
+          "eval-live-case-2":"Makefile#L538", "eval-live-case-3":"Makefile#L541", "eval-live-case-4":"Makefile#L544",
+          "eval-live-dynamic":"Makefile#L535", "eval-safety":"Makefile#L473", "eval-safety-case-09":"Makefile#L484",
+          "eval-safety-case-10":"Makefile#L487", "eval-safety-case-11":"Makefile#L490", "eval-safety-case-12":"Makefile#L493",
+          "eval-safety-case-13":"Makefile#L496", "eval-safety-case-14":"Makefile#L499", "eval-safety-case-15":"Makefile#L502",
+          "eval-safety-case-16":"Makefile#L505", "eval-safety-case-17":"Makefile#L508", "eval-session-aware":"Makefile#L511",
+          "eval-session-aware-case-s1":"Makefile#L516", "eval-session-aware-case-s2":"Makefile#L519", "eval-session-aware-case-s3":"Makefile#L522",
+          "gcp-bootstrap":"Makefile#L411", "gcp-cleanup-orphans":"Makefile#L419", "gcp-db-init-info":"Makefile#L359",
+          "gcp-db-proxy":"Makefile#L350", "gcp-db-setup":"Makefile#L362", "gcp-deploy":"Makefile#L429",
+          "gcp-rollback":"Makefile#L437", "gcp-traffic-list":"Makefile#L432", "help":"Makefile#L31",
+          "install":"Makefile#L124", "install-all":"Makefile#L128", "lint":"Makefile#L596",
+          "logs":"docker-compose.yml", "playground":"Makefile#L603", "register-gemini-enterprise":"Makefile#L613",
+          "run-api":"Makefile#L202", "run-cli":"Makefile#L237", "run-fastapi":"app/api/main.py",
+          "run-web":"Makefile#L193", "sync":"Makefile#L132", "sync-all":"Makefile#L135",
+          "test":"Makefile#L616", "test-api":"Makefile#L272", "test-audit":"Makefile#L278",
+          "test-security":"Makefile#L275", "tf-apply":"Makefile#L327", "tf-bootstrap":"Makefile#L283",
+          "tf-bootstrap-destroy":"Makefile#L302", "tf-db-password":"Makefile#L347", "tf-destroy":"Makefile#L336",
+          "tf-gen-config":"Makefile#L83", "tf-init":"Makefile#L315", "tf-plan":"Makefile#L318",
+          "toolbox-logs":"Makefile#L188", "ui-build":"Makefile#L246", "ui-dev":"Makefile#L243",
+          "ui-install":"Makefile#L240", "up":"docker-compose.yml", "up-build":"docker-compose.yml",
+        };
+        document
+          .querySelectorAll('pre code[class*="language-bash"]')
+          .forEach((code) => {
+            // 掃過所有文字節點，將每一行行首的 make <target> 都包成連結
+            // （支援多行 block；hljs 把註解切成 span，但每行 make 仍在文字節點開頭）
+            Array.from(code.childNodes).forEach((node) => {
+              if (node.nodeType !== Node.TEXT_NODE) return;
+              const v = node.nodeValue;
+              const re = /(^|\n)([ \t]*)(make )([a-z0-9-]+)/g;
+              let m;
+              let last = 0;
+              let frag = null;
+              while ((m = re.exec(v))) {
+                const suffix = MAKE_LINKS[m[4]];
+                if (!suffix) continue;
+                if (!frag) frag = document.createDocumentFragment();
+                const labelStart = m.index + m[1].length + m[2].length;
+                const before = v.slice(last, labelStart);
+                if (before) frag.appendChild(document.createTextNode(before));
+                const a = document.createElement("a");
+                a.className = "gh-src";
+                a.href = GH_BASE + suffix;
+                a.target = "_blank";
+                a.rel = "noopener";
+                a.textContent = m[3] + m[4];
+                frag.appendChild(a);
+                last = labelStart + m[3].length + m[4].length;
+              }
+              if (frag) {
+                const after = v.slice(last);
+                if (after) frag.appendChild(document.createTextNode(after));
+                code.replaceChild(frag, node);
+              }
+            });
+          });
 
         // Add copy buttons to all code blocks
         document.querySelectorAll('.codelab-step pre').forEach((pre) => {
