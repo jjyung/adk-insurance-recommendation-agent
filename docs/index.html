@@ -11417,7 +11417,7 @@ make tf-apply</code></pre>
             <li>
               <strong
                 >持續整合 (PR 階段 -
-                <code>.cloudbuild/pr_checks.yaml</code>)</strong
+                <a class="gh-src" href="https://github.com/lastingyeh/adk-insurance-recommendation-agent/blob/main/.cloudbuild/pr_checks.yaml" target="_blank" rel="noopener"><code>.cloudbuild/pr_checks.yaml</code></a>)</strong
               >：
               <p>
                 針對所有 Pull Request 執行。任務包含代碼檢查
@@ -11428,7 +11428,7 @@ make tf-apply</code></pre>
             <li>
               <strong
                 >Staging 環境部署 (合併 main -
-                <code>.cloudbuild/staging.yaml</code>)</strong
+                <a class="gh-src" href="https://github.com/lastingyeh/adk-insurance-recommendation-agent/blob/main/.cloudbuild/staging.yaml" target="_blank" rel="noopener"><code>.cloudbuild/staging.yaml</code></a>)</strong
               >：
               <p>
                 當代碼合併至 <code>main</code> 分支時觸發。任務包含：建置 Docker
@@ -11443,7 +11443,7 @@ make tf-apply</code></pre>
             <li>
               <strong
                 >Prod 生產環境發布 (建立 Git Tag -
-                <code>.cloudbuild/deploy-to-prod.yaml</code>)</strong
+                <a class="gh-src" href="https://github.com/lastingyeh/adk-insurance-recommendation-agent/blob/main/.cloudbuild/deploy-to-prod.yaml" target="_blank" rel="noopener"><code>.cloudbuild/deploy-to-prod.yaml</code></a>)</strong
               >：
               <p>
                 當建立 Git Tag（如
@@ -11800,8 +11800,8 @@ make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹�
                       <code>prompts/</code>
                     </li>
                     <li>
-                      MCP 工具集關聯: <code>db/tools.local.yaml</code>,
-                      <code>db/tools.cloud.yaml</code>
+                      MCP 工具集關聯: <a class="gh-src" href="https://github.com/lastingyeh/adk-insurance-recommendation-agent/blob/main/db/tools.local.yaml" target="_blank" rel="noopener"><code>db/tools.local.yaml</code></a>,
+                      <a class="gh-src" href="https://github.com/lastingyeh/adk-insurance-recommendation-agent/blob/main/db/tools.cloud.yaml" target="_blank" rel="noopener"><code>db/tools.cloud.yaml</code></a>
                     </li>
                     <li>
                       FAQ 向量檢索:
@@ -11823,7 +11823,7 @@ make tf-destroy ENV_NAME=prod    # 銷毀 Production 環境資源 (請極度謹�
                     </li>
                     <li>
                       自動化發布管線:
-                      <code>.cloudbuild/deploy-to-prod.yaml</code>
+                      <a class="gh-src" href="https://github.com/lastingyeh/adk-insurance-recommendation-agent/blob/main/.cloudbuild/deploy-to-prod.yaml" target="_blank" rel="noopener"><code>.cloudbuild/deploy-to-prod.yaml</code></a>
                     </li>
                     <li>
                       可觀測性與監控: GenAI OpenTelemetry, BigQuery Log
