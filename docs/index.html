@@ -1593,6 +1593,42 @@
             請開啟你的終端機，按照以下指令順序，我們來「點亮」這台地端機器。
           </p>
 
+          <h3>前期準備</h3>
+          <p>
+            在開始部署與開發前，必須先在本地主機完成環境變數配置，並透過 Google Cloud
+            SDK 授權取得本機程式執行憑證（ADC）：
+          </p>
+          <ol>
+            <li>
+              <strong>建立環境變數檔案 (<code>.env</code>)</strong>：
+              <p>
+                在專案根目錄建立並設定 GCP 部署相關變數。本專案的
+                <code>Makefile</code>
+                會在執行時自動載入此檔案，免除手動輸入參數的麻煩（請確保
+                <code>.env</code> 檔案已被加入
+                <code>.gitignore</code> 中以防外洩）：
+              </p>
+              <pre><code class="language-bash">GCP_PROJECT_ID=&lt;YOUR_GCP_PROJECT_ID&gt;
+GCP_REGION=us-central1
+PROJECT_NAME=insurance-agent
+ENV_NAME=dev</code></pre>
+            </li>
+            <li>
+              <strong>登入並設定預設 GCP 專案</strong>：
+              <p>開啟終端機，執行以下認證與專案綁定指令：</p>
+              <pre><code class="language-bash">gcloud auth login
+gcloud config set project &lt;YOUR_GCP_PROJECT_ID&gt;
+# 建立本機 Application Default Credentials (ADC) 憑證
+# 【極重要】：Terraform 與本地 Python 腳本連線 GCP 資源時，強烈需要此 ADC 憑證來建立連線與 GCS Bucket！
+gcloud auth application-default login</code></pre>
+            </li>
+            <li>
+              <strong>啟用 GCP 核心基礎服務 APIs</strong>：
+              <p>若你的專案是全新建立的，請手動啟用以下必要 API 服務：</p>
+              <pre><code class="language-bash">gcloud services enable cloudresourcemanager.googleapis.com serviceusage.googleapis.com</code><code class="language-bash">gcloud services enable aiplatform.googleapis.com</code></pre>
+            </li>
+          </ol>
+
           <h3>A. 環境變數配置 (.env)</h3>
           <p>
             在安裝依賴與啟動服務之前，必須先建立並設定本地環境變數。請將專案根目錄下的
