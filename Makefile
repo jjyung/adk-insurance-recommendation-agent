@@ -13,7 +13,7 @@ endif
 	run-web run-api run-cli run-fastapi debug-fastapi \
 	ui-install ui-dev ui-build \
 	_kill-adk-port _kill-fastapi-port _kill-ui-port _kill-port \
-	check test-api test-security test-audit \
+	check check-setup test-api test-security test-audit \
 	tf-bootstrap tf-bootstrap-destroy tf-init tf-plan tf-apply tf-destroy tf-db-password \
 	tf-gen-config build-push env-check-gcp gcp-db-proxy gcp-db-init-info gcp-db-setup \
 	gcp-bootstrap gcp-cleanup-orphans gcp-deploy gcp-traffic-list gcp-rollback \
@@ -265,6 +265,9 @@ _kill-port: ## (內部) 釋放指定 PORT 佔用的程序
 	fi
 
 # ─── 測試 ──────────────────────────────────────────────────
+
+check-setup: ## 執行環境安裝驗證並確認本機配置
+	@./scripts/check_setup.sh
 
 check: ## 執行測試（需要 dev extra）
 	$(PYTHON) -m pytest tests/ -v
