@@ -91,7 +91,7 @@ PostgreSQL / pgvector
 ├── docs/                        # 架構與功能文件
 ├── frontend/                    # Next.js 前端應用程式
 ├── scripts/                     # 設定、資料建立與 FAQ ingestion 腳本
-├── tests/                       # Unit、integration、security、API、load 與 eval 測試
+├── tests/                       # Unit、integration、security、API、load 與 eval 測試｀
 ├── docker-compose.yml           # 本機容器編排
 ├── Dockerfile.backend           # 後端容器映像設定
 ├── Dockerfile.toolbox           # Toolbox 容器映像設定
@@ -102,14 +102,16 @@ PostgreSQL / pgvector
 
 ## 前置需求
 
-本機開發前請先安裝：
+本專案本機開發需準備以下工具、套件與環境。詳細 macOS 本機安裝與核准檢核，請參閱完整的 [環境安裝與核准檢查清單 (setup-env.md)](docs/setup/setup-env.md)。
 
+### 📋 必備工具與套件 (Required Tools & Dependencies)
 - Python 3.12
 - uv
 - Node.js 20 或更新版本
 - npm
 - Docker 與 Docker Compose
 - Google Cloud credentials：使用 Vertex AI、embedding、雲端部署或 Toolbox 語意搜尋時需要
+
 
 先建立本機環境設定檔：
 
