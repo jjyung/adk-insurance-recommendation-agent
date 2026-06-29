@@ -98,3 +98,6 @@ graphify-out/*
 
 # graphify-visualization
 /graphify-out/*
+
+# plans
+docs/plans/**
