@@ -1777,11 +1777,8 @@ code --install-extension ms-azuretools.vscode-docker</code></pre>
                 <h4>1. 設定本機環境變數與 API 密鑰</h4>
                 <pre data-lang="bash"><code class="language-bash"># 拷貝環境變數範例
 cp .env.example .env
-
-# 設定 Gemini API Key (adk.dev 風格)
-export GOOGLE_API_KEY="AIzaSy..."
-export GOOGLE_GENAI_USE_VERTEXAI="FALSE"</code></pre>
-                <p>請開啟 <code>.env</code> 填寫您的 API 密鑰與專案設定值。</p>
+</code></pre>
+                <p>請開啟 <code>.env</code> 確認您目前環境變數相關專案設定值。</p>
 
                 <h4>2. 啟動並初始化本機資料庫與依賴套件</h4>
                 <pre data-lang="bash"><code class="language-bash"># 一鍵建立資料庫容器、匯入 Seed 與 FAQ Embeddings
